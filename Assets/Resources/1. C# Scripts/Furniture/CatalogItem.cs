@@ -20,6 +20,8 @@ public class CatalogItem : MonoBehaviour
     }
 
     void OnClick(Gesture.OnPress evt){
+        BuildSystem.Instance.SetFurnitureData(Data);
+        OpenCatalogButton.Instance.ActivateCatalogPanel(false);
     }
     void OnHover(Gesture.OnHover evt){
         preview.ShowPreview(transform.position, Data);

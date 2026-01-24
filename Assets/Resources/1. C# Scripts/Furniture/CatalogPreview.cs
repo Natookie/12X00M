@@ -17,9 +17,9 @@ public class CatalogPreview : MonoBehaviour
     }
 
     public void ShowPreview(Vector3 itemPos, FurnitureData data){
-        visual.furnitureIcon.SetImage(data.itemIcon);
-        visual.furnitureName.Text = data.itemName; 
-        visual.furniturePrice.Text = data.cost.ToString();
-        visual.furnitureSize.Text = $"{data.size.x} X {data.size.y}"; 
+        visual.furnitureIcon.SetImage(data.furnitureIcon);
+        visual.furnitureName.Text = data.furnitureName; 
+        visual.furniturePrice.Text = data.furnitureCost.ToString();
+        visual.furnitureSize.Text = $"{data.furnitureSize.x} X {data.furnitureSize.y}"; 
     }
 }

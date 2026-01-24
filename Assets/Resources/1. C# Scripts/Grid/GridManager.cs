@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
@@ -19,7 +18,7 @@ public class GridManager : MonoBehaviour
     
     [Header("GRID VISUAL")]
     [SerializeField] private GameObject gridPrefab;
-    [SerializeField] private Color[] gridColors = new Color[2]; 
+    [SerializeField] private Color[] gridColors = new Color[2];
     
     [Header("INTERACTION COLORS")]
     [SerializeField] private Color hoverColor = Color.yellow;
@@ -39,7 +38,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private bool initializeFirst = true;
     [SerializeField] private bool showGizmos = true;
     
-    private Dictionary<Vector2Int, GameObject> gridTiles = new Dictionary<Vector2Int, GameObject>();
+    private Dictionary<Vector2Int, GridTileData> gridTiles = new Dictionary<Vector2Int, GridTileData>();
     private GameObject lastHoveredTile;
     
     [Header("INTERACTION SETTINGS")]
@@ -47,6 +46,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private bool enableRotation = true;
     private bool isAnimating;
     private bool isBeingRotated;
+    private float animationTimer;
     
     private Vector3 GridCenter{
         get{
@@ -87,9 +87,6 @@ public class GridManager : MonoBehaviour
         if(Application.isPlaying){
             ClearExistingGrid();
             InitGrid();
-            if(enableAnimation){
-                StartCoroutine(AnimateGridWave());
-            }
         }
     }
     
@@ -100,9 +97,8 @@ public class GridManager : MonoBehaviour
             Debug.LogError("Prefab missing");
             return;
         }
-        
         if(gridColors.Length != 2){
-            Debug.LogError("Need 2 colors for checkerboard pattern");
+            Debug.LogError("Need 2 colors");
             return;
         }
         
@@ -130,86 +126,132 @@ public class GridManager : MonoBehaviour
                 GameObject tile = Instantiate(gridPrefab, position, Quaternion.identity, transform);
                 tile.name = $"GridTile_{x}_{z}";
                 
+                Vector3 originalScale = tile.transform.localScale;
+                
+                if(enableAnimation && Application.isPlaying) tile.transform.localScale = Vector3.zero;
+                
                 GridTileInfo tileInfo = tile.AddComponent<GridTileInfo>();
                 tileInfo.gridLocalPosition = new Vector2Int(gridX, gridZ);
                 tileInfo.gridIndexPosition = new Vector2Int(x, z);
                 
-                if(enableAnimation && Application.isPlaying) tile.transform.localScale = Vector3.zero;
-                
                 Renderer tileRenderer = tile.GetComponent<Renderer>();
                 if(tileRenderer != null){
                     int colorIndex = (x + z) % 2; 
-                    Material tileMaterial = new Material(tileRenderer.material);
-                    tileMaterial.color = gridColors[colorIndex];
+                    Color tileColor = gridColors[colorIndex];
+                    
+                    Material tileMaterial = new Material(tileRenderer.sharedMaterial);
+                    tileMaterial.color = tileColor;
                     tileRenderer.material = tileMaterial;
                     
-                    
                     tileInfo.originalMaterial = tileMaterial;
-                    tileInfo.originalColor = gridColors[colorIndex];
+                    tileInfo.originalColor = tileColor;
                     tileInfo.isDarkTile = colorIndex == 1;
+                    tileInfo.tileRenderer = tileRenderer;
                 }
-                
                 
                 if(tile.GetComponent<Collider>() == null) tile.AddComponent<BoxCollider>();
-                gridTiles[new Vector2Int(gridX, gridZ)] = tile;
+                
+                GridTileData tileData = new GridTileData{
+                    gameObject = tile,
+                    renderer = tile.GetComponent<Renderer>(),
+                    originalPosition = position,
+                    originalScale = originalScale,
+                    startDelay = CalculateAnimationDelay(gridX, gridZ),
+                    localYOffset = 0f,
+                    targetScale = Vector3.zero,
+                    currentScale = Vector3.zero,
+                    tileInfo = tileInfo
+                };
+                
+                gridTiles[new Vector2Int(gridX, gridZ)] = tileData;
             }
         }
+        
+        if(enableAnimation && Application.isPlaying) StartAnimation();
     }
     
-    IEnumerator AnimateGridWave(){
-        if(!enableAnimation || gridTiles.Count == 0) yield break;
+    float CalculateAnimationDelay(int gridX, int gridZ){
+        if(!enableAnimation) return 0f;
+        
+        int halfWidth = gridWidth / 2;
+        int halfLength = gridLength / 2;
+        
+        float normalizedX = (gridX + halfWidth) / (float)gridWidth;
+        float normalizedZ = (gridZ + halfLength) / (float)gridLength;
+        
+        return (normalizedX + normalizedZ) * 0.2f;
+    }
+    
+    void StartAnimation(){
+        if(!enableAnimation || gridTiles.Count == 0) return;
+        
         isAnimating = true;
-
-        float delayBetweenTiles = animationDuration / (gridLength + gridWidth);
+        animationTimer = 0f;
         
-        for(int sum = 0; sum <= gridLength + gridWidth - 2; sum++){
-            for(int x = 0; x < gridWidth; x++){
-                int z = sum - x;
-                if(z >= 0 && z < gridLength){
-                    int gridX = x - (gridWidth / 2);
-                    int gridZ = z - (gridLength / 2);
-                    StartCoroutine(AnimateSingleTile(new Vector2Int(gridX, gridZ)));
-                    yield return new WaitForSeconds(delayBetweenTiles);
-                }
-            }
+        foreach(var tileData in gridTiles.Values){
+            tileData.targetScale = tileData.originalScale;
+            tileData.currentScale = Vector3.zero;
+            tileData.localYOffset = 0f;
+            tileData.startTime = animationTimer + tileData.startDelay;
+            
+            if(tileData.gameObject != null) tileData.gameObject.transform.localScale = Vector3.zero;
         }
-
-        yield return new WaitForSeconds(1f);
-        isAnimating = false;
-    }
-    
-    IEnumerator AnimateSingleTile(Vector2Int gridPos){
-        if(!gridTiles.ContainsKey(gridPos)) yield break;
-        
-        GameObject tile = gridTiles[gridPos];
-        Vector3 startPos = tile.transform.position;
-        float elapsedTime = 0f;
-        
-        while (elapsedTime < animationDuration){
-            elapsedTime += Time.deltaTime;
-            float t = elapsedTime / animationDuration;
-            
-            float scaleValue = scaleCurve.Evaluate(t);
-            tile.transform.localScale = Vector3.one * scaleValue;
-            
-            float heightValue = heightCurve.Evaluate(t) * maxHeightOffset;
-            tile.transform.position = new Vector3(
-                startPos.x,
-                startPos.y + heightValue,
-                startPos.z
-            );
-            
-            yield return null;
-        }
-        
-        
-        tile.transform.localScale = Vector3.one;
-        tile.transform.position = startPos;
     }
     
     void Update(){
-        if(Application.isPlaying) DetectCursor();
+        if(Application.isPlaying){
+            DetectCursor();
+            if(isAnimating) UpdateAnimation();
+        }
     }
+    
+    void UpdateAnimation(){
+        if(!isAnimating) return;
+        
+        animationTimer += Time.deltaTime;
+        bool allAnimationsComplete = true;
+        
+        foreach(var tileData in gridTiles.Values){
+            if(tileData.gameObject == null) continue;
+            
+            float timeSinceStart = animationTimer - tileData.startTime;
+            
+            if(timeSinceStart < 0){
+                allAnimationsComplete = false;
+                continue;
+            }
+            
+            float normalizedTime = Mathf.Clamp01(timeSinceStart / animationDuration);
+            
+            if(normalizedTime < 1f){
+                allAnimationsComplete = false;
+                
+                float scaleT = scaleCurve.Evaluate(normalizedTime);
+                float heightT = heightCurve.Evaluate(normalizedTime);
+                
+                tileData.currentScale = Vector3.Lerp(Vector3.zero, tileData.targetScale, scaleT);
+                tileData.gameObject.transform.localScale = tileData.currentScale;
+                
+                tileData.localYOffset = Mathf.Lerp(0f, maxHeightOffset, heightT);
+                Vector3 localPos = tileData.gameObject.transform.localPosition;
+                localPos.y = tileData.localYOffset;
+                tileData.gameObject.transform.localPosition = localPos;
+            }else{
+                tileData.gameObject.transform.localScale = tileData.targetScale;
+                
+                Vector3 localPos = tileData.gameObject.transform.localPosition;
+                localPos.y = 0f; // Reset to original Y
+                tileData.gameObject.transform.localPosition = localPos;
+            }
+        }
+        
+        if(allAnimationsComplete){
+            isAnimating = false;
+            animationTimer = 0f;
+        }
+    }
+    
+    public bool IsGridBusy() => (isAnimating || isBeingRotated);
     
     public void SetRotationState(bool rotating){
         isBeingRotated = rotating;
@@ -221,6 +263,7 @@ public class GridManager : MonoBehaviour
     }
 
     public bool IsAnimating() => isAnimating;
+    
     void DetectCursor(){
         if(isAnimating || isBeingRotated || !enableHover) return;
         Vector2 mousePosition = Mouse.current.position.ReadValue();
@@ -241,10 +284,7 @@ public class GridManager : MonoBehaviour
             }
             
             if(Mouse.current.leftButton.wasPressedThisFrame){
-                StartCoroutine(FlashTile(hitTile, clickColor, 0.2f));
-                
-                GridTileInfo tileInfo = hitTile.GetComponent<GridTileInfo>();
-                //if(tileInfo != null) Debug.Log("Sawit");
+                FlashTile(hitTile, clickColor, 0.2f);
             }
         }else{
             if(lastHoveredTile != null){
@@ -256,25 +296,26 @@ public class GridManager : MonoBehaviour
     
     void SetTileInteractionColor(GameObject tile, Color interactionColor){
         Renderer renderer = tile.GetComponent<Renderer>();
-        if(renderer != null) renderer.material.color = interactionColor;
+        if(renderer != null){
+            if(renderer.material != null) renderer.material.color = interactionColor;
+        }
     }
     
     void ResetTileColor(GameObject tile){
         GridTileInfo tileInfo = tile.GetComponent<GridTileInfo>();
-        if(tileInfo != null){
+        if(tileInfo != null && tileInfo.originalMaterial != null){
             Renderer renderer = tile.GetComponent<Renderer>();
             if(renderer != null) renderer.material.color = tileInfo.originalColor;
         }
     }
     
-    IEnumerator FlashTile(GameObject tile, Color flashColor, float duration){
+    async void FlashTile(GameObject tile, Color flashColor, float duration){
         Renderer renderer = tile.GetComponent<Renderer>();
-        if(renderer == null) yield break;
+        if(renderer == null) return;
         
-        Color originalColor = renderer.material.color;
+        Color currentColor = renderer.material.color;
         renderer.material.color = flashColor;
-        
-        yield return new WaitForSeconds(duration);
+        await System.Threading.Tasks.Task.Delay((int)(duration * 1000));
         
         if(tile != null && renderer != null){
             if(tile == lastHoveredTile) renderer.material.color = hoverColor;
@@ -319,7 +360,6 @@ public class GridManager : MonoBehaviour
         int halfWidth = gridWidth / 2;
         int halfLength = gridLength / 2;
         
-        
         for(int x = -halfWidth; x <= halfWidth; x++){
             Vector3 lineStart = center + new Vector3(
                 (x * gridSpacing) + offsetX,
@@ -352,7 +392,10 @@ public class GridManager : MonoBehaviour
         Gizmos.DrawSphere(center, 0.2f);
     }
     
-    public GameObject GetTileAtLocalPosition(Vector2Int localPos) => gridTiles.ContainsKey(localPos) ? gridTiles[localPos] : null;
+    public GameObject GetTileAtLocalPosition(Vector2Int localPos){
+        return gridTiles.ContainsKey(localPos) ? gridTiles[localPos].gameObject : null;
+    }
+    
     public GameObject GetTileAtWorldPosition(Vector3 worldPos){
         Vector3 center = GridCenter;
         float offsetX = (gridWidth % 2 == 0) ? gridSpacing * 0.5f : 0f;
@@ -365,6 +408,20 @@ public class GridManager : MonoBehaviour
     }
 }
 
+public class GridTileData
+{
+    public GameObject gameObject;
+    public Renderer renderer;
+    public Vector3 originalPosition;
+    public Vector3 originalScale;
+    public float startDelay;
+    public float startTime;
+    public float localYOffset;
+    public Vector3 targetScale;
+    public Vector3 currentScale;
+    public GridTileInfo tileInfo;
+}
+
 public class GridTileInfo : MonoBehaviour
 {
     public Vector2Int gridLocalPosition;  
@@ -372,4 +429,5 @@ public class GridTileInfo : MonoBehaviour
     [HideInInspector] public Material originalMaterial;
     [HideInInspector] public Color originalColor;
     [HideInInspector] public bool isDarkTile;
+    [HideInInspector] public Renderer tileRenderer;
 }

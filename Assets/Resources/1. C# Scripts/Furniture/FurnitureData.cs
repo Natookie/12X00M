@@ -4,10 +4,11 @@ using UnityEngine;
 public class FurnitureData : ScriptableObject
 {
     [Header("BASIC PROPERTY")]
-    public string itemName;
-    public int cost;
-    public Vector2Int size = new Vector2Int(1, 1);
-    public GameObject prefab;
+    public string furnitureName;
+    public int furnitureCost;
+    public Vector2Int furnitureSize = new Vector2Int(1, 1);
+    [Space(10)]
+    public FurnitureType furnitureType;
 
     [Header("TRAIT VALUE")]
     [Range(-10, 10)] [SerializeField] private int charismaContribution = 0;
@@ -15,24 +16,26 @@ public class FurnitureData : ScriptableObject
     [Range(-10, 10)] [SerializeField] private int functionalityContribution = 0;
 
     [Header("VISUAL")]
-    public Sprite itemIcon;
+    public Sprite furnitureIcon;
+    public GameObject furniturePrefab;
 
-    public string ItemName => itemName;
-    public int Cost => cost;
-    public Vector2Int Size => size;
-    public GameObject Prefab => prefab;
+    public string ItemName => furnitureName;
+    public int Cost => furnitureCost;
+    public Vector2Int Size => furnitureSize;
+    public GameObject Prefab => furniturePrefab;
+    
     public int CharismaContribution => charismaContribution;
     public int ComfortContribution => comfortContribution;
     public int FunctionalityContribution => functionalityContribution;
 
     public bool IsValid(){
-        if(prefab == null){
-            Debug.LogError($"Furniture '{itemName}' is missing prefab!");
+        if(furniturePrefab == null){
+            Debug.LogError($"Furniture '{furnitureName}' is missing furniturePrefab!");
             return false;
         }
         
-        if(size.x <= 0 || size.y <= 0){
-            Debug.LogWarning($"Furniture '{itemName}' has invalid size ({size})");
+        if(furnitureSize.x <= 0 || furnitureSize.y <= 0){
+            Debug.LogWarning($"Furniture '{furnitureName}' has invalid furnitureSize ({furnitureSize})");
             return false;
         }
         

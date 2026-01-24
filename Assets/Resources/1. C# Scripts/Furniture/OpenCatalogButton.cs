@@ -8,6 +8,13 @@ public class OpenCatalogButton : MonoBehaviour
     [SerializeField] private UIBlock2D root;
     [SerializeField] private GameObject catalogPanel;
 
+    public static OpenCatalogButton Instance {get; private set;}
+
+    void Awake(){
+        if(Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
+
     void Start(){
         root.AddGestureHandler<Gesture.OnPress>(OnClick);
         root.AddGestureHandler<Gesture.OnHover>(OnHover);
@@ -15,11 +22,11 @@ public class OpenCatalogButton : MonoBehaviour
     }
 
     void Update(){
-        if(Keyboard.current.escapeKey.wasPressedThisFrame && catalogPanel.activeSelf) catalogPanel.SetActive(false);
+        if(Keyboard.current.escapeKey.wasPressedThisFrame && catalogPanel.activeSelf) ActivateCatalogPanel(false);
     }
 
     void OnClick(Gesture.OnPress evt){
-        if(!catalogPanel.activeSelf) catalogPanel.SetActive(true);
+        if(!catalogPanel.activeSelf) ActivateCatalogPanel(true);
     }
     void OnHover(Gesture.OnHover evt){
 
@@ -27,4 +34,6 @@ public class OpenCatalogButton : MonoBehaviour
     void OnUnhover(Gesture.OnUnhover evt){
 
     }
+
+    public void ActivateCatalogPanel(bool type) => catalogPanel.SetActive(type);   
 }

@@ -26,7 +26,7 @@ public class CatalogEditor : MonoBehaviour
         if(itemTransform.childCount > 0){
             Transform iconChild = itemTransform.GetChild(0);
             UIBlock2D uiBlock = iconChild.GetComponent<UIBlock2D>();
-            if(uiBlock != null && data.itemIcon != null) uiBlock.SetImage(data.itemIcon as Sprite);
+            if(uiBlock != null && data.furnitureIcon != null) uiBlock.SetImage(data.furnitureIcon as Sprite);
         }
         
         if(itemTransform.childCount > 1){
