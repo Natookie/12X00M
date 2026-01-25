@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Events;
 
 public class GridRotator : MonoBehaviour
 {
@@ -10,12 +11,16 @@ public class GridRotator : MonoBehaviour
     [SerializeField] private bool invertMouseRotation = false;
     
     [Header("INPUT SETTINGS")]
-    [SerializeField] private KeyCode rotateLeftKey = KeyCode.A;
-    [SerializeField] private KeyCode rotateRightKey = KeyCode.D;
+    [SerializeField] private KeyCode rotateLeftKey = KeyCode.Q;
+    [SerializeField] private KeyCode rotateRightKey = KeyCode.E;
     [SerializeField] private bool useInputSystem = true;
     
     [Header("REFERENCES")]
     [SerializeField] private GridManager gridManager;
+    
+    [Header("EVENTS")]
+    public UnityEvent OnRotationStarted;
+    public UnityEvent OnRotationStopped;
     
     //Rotation state
     private float targetRotationY;
@@ -29,6 +34,8 @@ public class GridRotator : MonoBehaviour
     //Control flags
     private bool rotationEnabled = true;
     private bool isRotating = false;
+    private bool wasRotatingLastFrame = false;
+    private bool keyboardRotating = false;
     
     void Start(){
         targetRotationY = transform.eulerAngles.y;
@@ -41,40 +48,41 @@ public class GridRotator : MonoBehaviour
     void Update(){
         CheckAnimationState();
         
+        wasRotatingLastFrame = isRotating;
+        
         if(rotationEnabled){
-            HandleKeyboardInput();
+            keyboardRotating = HandleKeyboardInput();
             HandleMouseInput();
         }
         
         UpdateRotation();
-        isRotating = Mathf.Abs(rotationVelocity) > .1f || isMouseDragging;
-        
+        isRotating = Mathf.Abs(rotationVelocity) > .1f || isMouseDragging || keyboardRotating;
+    
         UpdateGridManagerState();
+        
+        if(!wasRotatingLastFrame && isRotating) OnRotationStarted?.Invoke();
+        else if(wasRotatingLastFrame && !isRotating) OnRotationStopped?.Invoke();
     }
     
-    void CheckAnimationState(){
-        if(gridManager != null) rotationEnabled = !gridManager.IsAnimating();
-    }
-    
-    void UpdateGridManagerState(){
-        if(gridManager != null) gridManager.SetRotationState(isRotating || isMouseDragging);
-    }
-    
-    void HandleKeyboardInput(){
+    bool HandleKeyboardInput(){
         float rotationInput = 0f;
         
         if(useInputSystem){
-            if(Keyboard.current.aKey.isPressed) rotationInput -= 1f;
-            if(Keyboard.current.dKey.isPressed) rotationInput += 1f;
+            if(Keyboard.current.qKey.isPressed) rotationInput -= 1f;
+            if(Keyboard.current.eKey.isPressed) rotationInput += 1f;
         }else{
             if(Input.GetKey(rotateLeftKey)) rotationInput -= 1f;
             if(Input.GetKey(rotateRightKey)) rotationInput += 1f;
         }
         
-        if(rotationInput != 0f){
+        bool isKeyboardRotating = rotationInput != 0f;
+        
+        if(isKeyboardRotating){
             float rotationDelta = rotationInput * rotationSpeed * Time.deltaTime;
             targetRotationY += rotationDelta;
         }
+        
+        return isKeyboardRotating;
     }
     
     void HandleMouseInput(){
@@ -151,14 +159,23 @@ public class GridRotator : MonoBehaviour
         transform.eulerAngles = euler;
     }
     
+    void CheckAnimationState(){
+        if(gridManager != null) rotationEnabled = !gridManager.IsAnimating();
+    }
+    
+    void UpdateGridManagerState(){
+        if(gridManager != null) gridManager.SetRotationState(isRotating || isMouseDragging);
+    }
+    
     public void EnableRotation(bool enable){
         rotationEnabled = enable;
         
         if(!enable && isMouseDragging) EndMouseDrag();
     }
     
-    public bool IsRotating() => isRotating || isMouseDragging;
+    public bool IsRotating() => isRotating || isMouseDragging || keyboardRotating;
     public float GetCurrentRotation() => currentRotationY;
+    public bool RotationStateChangedThisFrame() => wasRotatingLastFrame != isRotating;
     
     void OnDisable(){
         if(isMouseDragging){

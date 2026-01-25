@@ -9,7 +9,12 @@ public class BuildSystem : MonoBehaviour
     [Header("REFERENCES")]
     [SerializeField] private GridManager gridManager;
     [SerializeField] private RoomStats roomStats;
+    [SerializeField] private MoneyManager moneyManager;
+    [SerializeField] private TaskManager taskManager;
     [Space(10)]
+    [SerializeField] private Transform furnitureParent;
+
+    [Header("VISUAL")]
     [SerializeField] private Material validPlacementMaterial;
     [SerializeField] private Material invalidPlacementMaterial;
     [SerializeField] private float placementYOffset = 0f;
@@ -31,30 +36,6 @@ public class BuildSystem : MonoBehaviour
         }
         
         if(gridManager == null) gridManager = FindAnyObjectByType<GridManager>();
-        CreateDefaultMaterials();
-    }
-    
-    void CreateDefaultMaterials(){
-        if(validPlacementMaterial == null){
-            validPlacementMaterial = new Material(Shader.Find("Standard"));
-            validPlacementMaterial.color = new Color(0, 1, 0, 0.5f);
-            SetupTransparentMaterial(validPlacementMaterial);
-        }
-        
-        if(invalidPlacementMaterial == null){
-            invalidPlacementMaterial = new Material(validPlacementMaterial);
-            invalidPlacementMaterial.color = new Color(1, 0, 0, 0.5f);
-        }
-    }
-    
-    void SetupTransparentMaterial(Material material){
-        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        material.SetInt("_ZWrite", 0);
-        material.DisableKeyword("_ALPHATEST_ON");
-        material.EnableKeyword("_ALPHABLEND_ON");
-        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        material.renderQueue = 3000;
     }
     
     void Update(){
@@ -87,17 +68,17 @@ public class BuildSystem : MonoBehaviour
         currentSelectedFurniture = data;
         furnitureIsOnPending = false;
         
-        Debug.Log($"Selected furniture: {data.ItemName}");
+        Debug.Log($"Selected furniture: {data.FurnitureName}");
         
         CreatePlacementPreview();
     }
     
     void CreatePlacementPreview(){
-        if(currentSelectedFurniture?.Prefab == null) return;
+        if(currentSelectedFurniture?.FurniturePrefab == null) return;
         
         if(placementPreview != null) Destroy(placementPreview);
-        placementPreview = Instantiate(currentSelectedFurniture.Prefab);
-        placementPreview.name = $"{currentSelectedFurniture.ItemName}_Preview";
+        placementPreview = Instantiate(currentSelectedFurniture.FurniturePrefab, furnitureParent);
+        placementPreview.name = $"{currentSelectedFurniture.FurnitureName}_Preview";
         
         SetPreviewMaterials(placementPreview, validPlacementMaterial);
         
@@ -124,9 +105,9 @@ public class BuildSystem : MonoBehaviour
         if(!mouseGridPos.HasValue) return;
         
         Vector2Int gridPos = WorldToGridPosition(mouseGridPos.Value);
-        bool isValid = IsPlacementValid(gridPos, currentSelectedFurniture.Size);
+        bool isValid = IsPlacementValid(gridPos, currentSelectedFurniture.FurnitureSize);
         
-        Vector3 worldPos = GetTileWorldPosition(gridPos, currentSelectedFurniture.Size);
+        Vector3 worldPos = GetTileWorldPosition(gridPos, currentSelectedFurniture.FurnitureSize);
         
         placementPreview.transform.position = worldPos;
         
@@ -138,9 +119,7 @@ public class BuildSystem : MonoBehaviour
         if(gridManager == null) return Vector3.zero;
         
         GameObject centerTile = gridManager.GetTileAtLocalPosition(gridPos);
-        if(centerTile == null){
-            return CalculatePositionFromGrid(gridPos, size);
-        }
+        if(centerTile == null) return CalculatePositionFromGrid(gridPos, size);
         
         Vector3 tilePos = centerTile.transform.position;
         
@@ -204,9 +183,9 @@ public class BuildSystem : MonoBehaviour
         if(!mouseGridPos.HasValue) return;
         
         pendingGridPosition = WorldToGridPosition(mouseGridPos.Value);
-        isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSelectedFurniture.Size);
+        isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
         
-        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSelectedFurniture.Size);
+        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
         
         placementPreview.transform.position = worldPos;
         
@@ -300,11 +279,15 @@ public class BuildSystem : MonoBehaviour
     void PlaceFurniture(){
         if(!furnitureIsOnPending || !isPendingPlacementValid || currentSelectedFurniture == null) return;
         
-        List<Vector2Int> occupied = GetOccupiedCells(pendingGridPosition, currentSelectedFurniture.Size);
-        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSelectedFurniture.Size);
+        List<Vector2Int> occupied = GetOccupiedCells(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
+        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
         
-        GameObject furnitureObj = Instantiate(currentSelectedFurniture.Prefab, worldPos, placementPreview.transform.rotation);
-        furnitureObj.name = currentSelectedFurniture.ItemName;
+        GameObject furnitureObj = Instantiate(currentSelectedFurniture.FurniturePrefab, worldPos, placementPreview.transform.rotation, furnitureParent);
+        furnitureObj.name = currentSelectedFurniture.FurnitureName;
+
+        FurnitureController furnitureController = furnitureObj.AddComponent<FurnitureController>();
+        furnitureController.SetFurnitureData(currentSelectedFurniture);
+        furnitureController.SetGridPosition(pendingGridPosition);
         
         FurnitureInstance instance = new FurnitureInstance{
             furnitureData = currentSelectedFurniture,
@@ -319,14 +302,33 @@ public class BuildSystem : MonoBehaviour
             placedFurniture[cell] = instance;
         }
         
-        if(roomStats != null){
-            roomStats.AddFurniture(currentSelectedFurniture);
-            Debug.Log("je;; ");
-        }
+        if(roomStats != null) roomStats.AddFurniture(currentSelectedFurniture);
+        if(moneyManager != null) moneyManager.AddMoney(-currentSelectedFurniture.FurnitureCost);
+        if(taskManager != null) taskManager.OnFurniturePlaced();
 
-        Debug.Log($"Placed {currentSelectedFurniture.ItemName} at grid {pendingGridPosition}");
-        
+        Debug.Log($"Placed {currentSelectedFurniture.FurnitureName} at grid {pendingGridPosition}");
+        Debug.Log($"Money - {currentSelectedFurniture.FurnitureCost}");
         ClearSelection();
+    }
+
+    public bool RemoveFurniture(Vector3 worldPosition){
+        Vector2Int gridPos = WorldToGridPosition(worldPosition);
+        
+        if(placedFurniture.ContainsKey(gridPos)){
+            FurnitureInstance furniture = placedFurniture[gridPos];
+            
+            foreach(Vector2Int cell in furniture.occupiedCells){
+                occupiedCells.Remove(cell);
+                placedFurniture.Remove(cell);
+            }
+            
+            if(furniture.gameObject != null) Destroy(furniture.gameObject);
+            
+            Debug.Log($"Removed {furniture.furnitureData.FurnitureName} from grid");
+            return true;
+        }
+        
+        return false;
     }
     
     void RotateFurniture(){
@@ -335,7 +337,7 @@ public class BuildSystem : MonoBehaviour
         placementPreview.transform.Rotate(0, 90, 0);
         
         if(furnitureIsOnPending){
-            isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSelectedFurniture.Size);
+            isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
             
             Material currentMaterial = isPendingPlacementValid ? validPlacementMaterial : invalidPlacementMaterial;
             SetPreviewMaterials(placementPreview, currentMaterial);

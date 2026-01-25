@@ -16,6 +16,6 @@ public class FurnitureCountTask : TaskData
 
     public override string GetDescription(RoomStats roomStats){
         int current = roomStats.GetFurnitureCount(requiredFurniture);
-        return $"[{current}/{requiredCount}] Have {requiredCount} {requiredFurniture.ItemName}(s) in the room";
+        return $"[{current}/{requiredCount}] Have {requiredCount} {requiredFurniture.FurnitureName}(s) in the room";
     }
 }

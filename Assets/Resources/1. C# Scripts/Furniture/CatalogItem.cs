@@ -20,11 +20,13 @@ public class CatalogItem : MonoBehaviour
     }
 
     void OnClick(Gesture.OnPress evt){
-        BuildSystem.Instance.SetFurnitureData(Data);
-        OpenCatalogButton.Instance.ActivateCatalogPanel(false);
+        if(MoneyManager.Instance.CanAfford(Data.FurnitureCost)){
+            BuildSystem.Instance.SetFurnitureData(Data);
+            OpenCatalogButton.Instance.ActivateCatalogPanel(false);
+        }
     }
     void OnHover(Gesture.OnHover evt){
-        preview.ShowPreview(transform.position, Data);
+        preview.ShowPreview(transform.position, Data, MoneyManager.Instance.CanAfford(Data.FurnitureCost));
     }
     void OnUnhover(Gesture.OnUnhover evt){
         

@@ -32,13 +32,13 @@ public class CatalogEditor : MonoBehaviour
         if(itemTransform.childCount > 1){
             Transform textChild = itemTransform.GetChild(1);
             TextBlock textBlock = textChild.GetComponent<TextBlock>();
-            if(textBlock != null) textBlock.Text = data.ItemName;
+            if(textBlock != null) textBlock.Text = data.FurnitureName;
         }
         
         if(itemTransform.childCount > 2){
             Transform costChild = itemTransform.GetChild(2);
             TextBlock costText = costChild.GetComponent<TextBlock>();
-            if(costText != null) costText.Text = $"${data.Cost}";
+            if(costText != null) costText.Text = $"${data.furnitureCost}";
         }
     }
     

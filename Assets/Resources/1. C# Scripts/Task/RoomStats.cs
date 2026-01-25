@@ -33,7 +33,14 @@ public class RoomStats : MonoBehaviour
     public int Comfort => comfort;
     public int Functionality => functionality;
 
+    public static RoomStats Instance {get; private set;}
+
     void Awake(){
+        if(Instance == null) Instance = this;
+        else{
+            Destroy(gameObject);
+            return;
+        }
         InitializeTypeCounts();
     }
 

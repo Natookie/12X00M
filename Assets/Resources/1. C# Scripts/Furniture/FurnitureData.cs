@@ -19,10 +19,10 @@ public class FurnitureData : ScriptableObject
     public Sprite furnitureIcon;
     public GameObject furniturePrefab;
 
-    public string ItemName => furnitureName;
-    public int Cost => furnitureCost;
-    public Vector2Int Size => furnitureSize;
-    public GameObject Prefab => furniturePrefab;
+    public string FurnitureName => furnitureName;
+    public int FurnitureCost => furnitureCost;
+    public Vector2Int FurnitureSize => furnitureSize;
+    public GameObject FurniturePrefab => furniturePrefab;
     
     public int CharismaContribution => charismaContribution;
     public int ComfortContribution => comfortContribution;

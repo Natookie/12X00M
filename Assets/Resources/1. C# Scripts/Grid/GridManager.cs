@@ -11,6 +11,8 @@ public class GridManager : MonoBehaviour
     [SerializeField] private float gridSpacing = 1.1f;
     [SerializeField] private bool centerOnTransform = true;
     [SerializeField] private Vector3 customCenterPos = Vector3.zero;
+    [Space(10)]
+    [SerializeField] private Transform gridParent;
 
     public int GridWidth => gridWidth;
     public int GridLength => gridLength;
@@ -123,7 +125,7 @@ public class GridManager : MonoBehaviour
                     (gridZ * gridSpacing) + offsetZ
                 );
                 
-                GameObject tile = Instantiate(gridPrefab, position, Quaternion.identity, transform);
+                GameObject tile = Instantiate(gridPrefab, position, Quaternion.identity, gridParent);
                 tile.name = $"GridTile_{x}_{z}";
                 
                 Vector3 originalScale = tile.transform.localScale;

@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1f6731fd7219d84e9723716fefc1d37, type: 3}
   m_Name: Bed
   m_EditorClassIdentifier: Assembly-CSharp::FurnitureData
-  itemName: Bed
-  cost: 0
-  size: {x: 1, y: 1}
-  prefab: {fileID: 0}
+  furnitureName: Bed
+  furnitureCost: 0
+  furnitureSize: {x: 1, y: 1}
+  furnitureType: 1
   charismaContribution: 4
   comfortContribution: 8
   functionalityContribution: 0
-  itemIcon: {fileID: 21300000, guid: 5f50dc0fb3b86184e8853d094d77599b, type: 3}
+  furnitureIcon: {fileID: 0}
+  furniturePrefab: {fileID: 965816770031140970, guid: 7649e0ec91cd77446914c531cea0309e, type: 3}

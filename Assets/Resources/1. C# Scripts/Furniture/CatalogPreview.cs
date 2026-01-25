@@ -7,6 +7,9 @@ public class CatalogPreview : MonoBehaviour
     public ItemView furnitureItemVisual;
     private FurnitureItemVisual visual;
 
+    private string redColor = "#f5464c";
+    private string greenColor = "#3ec54b";
+
     void Awake(){
         if(Instance == null) Instance = this;
         else Destroy(gameObject);
@@ -16,10 +19,12 @@ public class CatalogPreview : MonoBehaviour
         visual = furnitureItemVisual.Visuals as FurnitureItemVisual;
     }
 
-    public void ShowPreview(Vector3 itemPos, FurnitureData data){
+    public void ShowPreview(Vector3 itemPos, FurnitureData data, bool isAffordable){
+        string textColor = (isAffordable) ? greenColor : redColor;
+
         visual.furnitureIcon.SetImage(data.furnitureIcon);
         visual.furnitureName.Text = data.furnitureName; 
-        visual.furniturePrice.Text = data.furnitureCost.ToString();
+        visual.furniturePrice.Text = $"<color={textColor}>{data.furnitureCost.ToString()}</color>";
         visual.furnitureSize.Text = $"{data.furnitureSize.x} X {data.furnitureSize.y}"; 
     }
 }

@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1f6731fd7219d84e9723716fefc1d37, type: 3}
   m_Name: Chair
   m_EditorClassIdentifier: Assembly-CSharp::FurnitureData
-  itemName: Wooden Chair
-  cost: 0
-  size: {x: 1, y: 1}
-  prefab: {fileID: 0}
+  furnitureName: Chair
+  furnitureCost: 0
+  furnitureSize: {x: 1, y: 1}
+  furnitureType: 2
   charismaContribution: -10
   comfortContribution: 5
   functionalityContribution: -5
-  itemIcon: {fileID: 0}
+  furnitureIcon: {fileID: 0}
+  furniturePrefab: {fileID: 5572783410703690239, guid: 36653186fd0791144927a3e2bb7ec247, type: 3}
