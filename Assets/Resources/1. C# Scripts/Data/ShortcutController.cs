@@ -15,7 +15,7 @@ public class ShortcutController : MonoBehaviour
 
     void Update(){
         //Open Inventory
-        if(Keyboard.current.tabKey.isPressed) openCatalogBtn.ActivateCatalogPanel(true);
+        if(Keyboard.current.spaceKey.wasPressedThisFrame) openCatalogBtn.ActivateCatalogPanel(!openCatalogBtn.IsPanelActive());
 
         //Get Inventory selection
     }

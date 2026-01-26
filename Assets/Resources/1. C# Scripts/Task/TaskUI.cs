@@ -8,7 +8,7 @@ public class TaskUI : MonoBehaviour
     [Header("UI ELEMENTS")]
     [SerializeField] private UIBlock2D refreshMainBtn;
     [SerializeField] private UIBlock2D refreshExtraBtn;
-    [SerializeField] private UIBlock2D completeBtn;
+    [SerializeField] private UIBlock2D endRoundBtn;
     [Space(10)]
     [SerializeField] private TextBlock mainTaskText;
     [SerializeField] private TextBlock extraTaskText;
@@ -24,6 +24,8 @@ public class TaskUI : MonoBehaviour
     [Header("REFERENCES")]
     [SerializeField] private TaskManager taskManager;
     [SerializeField] private MoneyManager moneyManager;
+    [SerializeField] private RoundManager roundManager;
+    [SerializeField] private GridHighlight gridHighlight;
 
     void Start(){
         //Main refresh button
@@ -41,10 +43,10 @@ public class TaskUI : MonoBehaviour
         }
         
         //Complete button
-        if(completeBtn != null){
-            completeBtn.AddGestureHandler<Gesture.OnPress>(CompleteClick);
-            completeBtn.AddGestureHandler<Gesture.OnHover>(CompleteHover);
-            completeBtn.AddGestureHandler<Gesture.OnUnhover>(CompleteUnhover);
+        if(endRoundBtn != null){
+            endRoundBtn.AddGestureHandler<Gesture.OnPress>(EndRoundClick);
+            endRoundBtn.AddGestureHandler<Gesture.OnHover>(EndRoundHover);
+            endRoundBtn.AddGestureHandler<Gesture.OnUnhover>(EndRoundUnhover);
         }
         
         if(taskManager != null) taskManager.OnTasksUpdated += UpdateUI;
@@ -59,6 +61,7 @@ public class TaskUI : MonoBehaviour
     public void UpdateUI(){
         UpdateMainTaskDisplay();
         UpdateExtraTaskDisplay();
+
         UpdateButtonStates();
         UpdateCostDisplay();
         UpdateRewardDisplay();
@@ -136,24 +139,9 @@ public class TaskUI : MonoBehaviour
             refreshExtraBtn.Color = (canAfford) ? normalColor : unavailableColor;
         }
         
-        if(completeBtn != null){
-            bool anyCompleted = false;
-            foreach(TaskData task in taskManager.GetMainTasks()){
-                if(taskManager.IsTaskCompleted(task)){
-                    anyCompleted = true;
-                    break;
-                }
-            }
-            if(!anyCompleted){
-                foreach(TaskData task in taskManager.GetExtraTasks()){
-                    if(taskManager.IsTaskCompleted(task)){
-                        anyCompleted = true;
-                        break;
-                    }
-                }
-            }
-            
-            completeBtn.Color = anyCompleted ? normalColor : unavailableColor;
+         if(endRoundBtn != null){
+            bool anyCompleted = taskManager.HasCompletableTasks();
+            endRoundBtn.Color = anyCompleted ? normalColor : unavailableColor;
         }
     }
 
@@ -199,14 +187,17 @@ public class TaskUI : MonoBehaviour
     void RefreshUnhover(Gesture.OnUnhover evt){
     }
     
-    void CompleteClick(Gesture.OnPress evt){
-        if(taskManager != null) taskManager.CheckCompletedTask();
+    void EndRoundClick(Gesture.OnPress evt){
+        if(taskManager != null) taskManager.EvaluateAllTasksAtRoundEnd();
+        if(roundManager != null) roundManager.CompleteRound();
+        if(moneyManager != null) moneyManager.AddMoneyForUnoccupiedTiles();
+        if(gridHighlight != null) gridHighlight.AnimateWaveToBlue();
     }
     
-    void CompleteHover(Gesture.OnHover evt){
+    void EndRoundHover(Gesture.OnHover evt){
     }
     
-    void CompleteUnhover(Gesture.OnUnhover evt){
+    void EndRoundUnhover(Gesture.OnUnhover evt){
     }
     #endregion
 }

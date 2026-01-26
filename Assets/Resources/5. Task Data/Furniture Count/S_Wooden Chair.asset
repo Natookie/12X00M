@@ -16,4 +16,4 @@ MonoBehaviour:
   description: 
   rewardCoins: 50
   requiredFurniture: {fileID: 11400000, guid: 384ee4fb6a6cfef4b92580ebe6d20822, type: 2}
-  requiredCount: 1
+  requiredCount: 2

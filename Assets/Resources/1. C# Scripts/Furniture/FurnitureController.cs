@@ -21,13 +21,13 @@ public class FurnitureController : MonoBehaviour
     [SerializeField] private Color hoverColor = Color.yellow;
     
     private bool isSelected = false;
-    private bool isHovering = false;
     private Color originalColor;
     private Vector3 originalScale;
     private Vector3 originalPosition;
+    private Vector3 lastClickPosition;
     private Material furnitureMaterial;
 
-    private Vector2 gridPos;
+    private Vector2Int gridPos;
     
     void Start(){
         InitializeComponents();
@@ -80,11 +80,13 @@ public class FurnitureController : MonoBehaviour
     }
     
     void Update(){
-        HandleSelectionInput();
+        if(!BuildSystem.Instance.IsInBuildMode) HandleSelectionInput();
     }
     
     void HandleSelectionInput(){
         if(Mouse.current.leftButton.wasPressedThisFrame){
+            lastClickPosition = Mouse.current.position.ReadValue();
+
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
             RaycastHit hit;
             
@@ -111,7 +113,6 @@ public class FurnitureController : MonoBehaviour
             if(col != null) col.enabled = false;
         }
 
-        isHovering = true;
         StartCoroutine(HoverAnimation(true));
     }
     
@@ -124,7 +125,6 @@ public class FurnitureController : MonoBehaviour
             if(col != null) col.enabled = true;
         }
 
-        isHovering = false;
         StartCoroutine(HoverAnimation(false));
     }
     
@@ -148,8 +148,6 @@ public class FurnitureController : MonoBehaviour
         isSelected = true;
         if(furnitureMaterial != null) furnitureMaterial.color = selectedColor;
         transform.localScale = originalScale * 1.1f;
-        
-        Debug.Log($"Selected {furnitureData?.FurnitureName}. Click again to sell for ${CalculateSellPrice()}");
     }
     
     void DeselectFurniture(){
@@ -163,18 +161,18 @@ public class FurnitureController : MonoBehaviour
         if(furnitureData == null) return;
         
         int sellPrice = CalculateSellPrice();
-        MoneyManager.Instance.AddMoney(sellPrice);
-        Debug.Log($"Sold {furnitureData.FurnitureName} for ${sellPrice} (70% of ${furnitureData.FurnitureCost})");
-        
+        if(MoneyManager.Instance != null) MoneyManager.Instance.AddMoney(sellPrice);
+        if(MoneyUI.Instance != null) MoneyUI.Instance.ShowMoneyFeedback(sellPrice, lastClickPosition);
+
         if(BuildSystem.Instance != null) BuildSystem.Instance.RemoveFurniture(gridPos);
         if(RoomStats.Instance != null) RoomStats.Instance.RemoveFurniture(furnitureData);
-        
+        if(TaskManager.Instance != null) TaskManager.Instance.OnFurnitureUpdated();
         Destroy(gameObject);
     }
     
     int CalculateSellPrice(){
         if(furnitureData == null) return 0;
-        return Mathf.RoundToInt(furnitureData.FurnitureCost * 0.7f);
+        return Mathf.RoundToInt(furnitureData.FurnitureCost * 0.4f);
     }
     
     public void SetFurnitureData(FurnitureData data) => furnitureData = data;

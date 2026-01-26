@@ -6,14 +6,16 @@ public class GridRotator : MonoBehaviour
 {
     [Header("ROTATION SETTINGS")]
     [SerializeField] private float rotationSpeed = 90f;
-    [SerializeField] private float mouseRotationSpeed = 2f;
+    [SerializeField] private float mouseRotationSensitivity = 0.5f;
     [SerializeField] private float smoothTime = .2f;
     [SerializeField] private bool invertMouseRotation = false;
+    [SerializeField] private float mouseInertiaDuration = 0.3f;
     
     [Header("INPUT SETTINGS")]
     [SerializeField] private KeyCode rotateLeftKey = KeyCode.Q;
     [SerializeField] private KeyCode rotateRightKey = KeyCode.E;
     [SerializeField] private bool useInputSystem = true;
+    [SerializeField] private bool allowToUseMouse = false;
     
     [Header("REFERENCES")]
     [SerializeField] private GridManager gridManager;
@@ -30,6 +32,8 @@ public class GridRotator : MonoBehaviour
     //Mouse drag state
     private bool isMouseDragging = false;
     private Vector2 lastMousePosition;
+    private float mouseRotationVelocity;
+    private float inertiaTimeRemaining;
     
     //Control flags
     private bool rotationEnabled = true;
@@ -52,11 +56,11 @@ public class GridRotator : MonoBehaviour
         
         if(rotationEnabled){
             keyboardRotating = HandleKeyboardInput();
-            HandleMouseInput();
+            if(allowToUseMouse) HandleMouseInput();
         }
         
         UpdateRotation();
-        isRotating = Mathf.Abs(rotationVelocity) > .1f || isMouseDragging || keyboardRotating;
+        isRotating = Mathf.Abs(rotationVelocity) > .1f || isMouseDragging || keyboardRotating || inertiaTimeRemaining > 0f;
     
         UpdateGridManagerState();
         
@@ -68,8 +72,8 @@ public class GridRotator : MonoBehaviour
         float rotationInput = 0f;
         
         if(useInputSystem){
-            if(Keyboard.current.qKey.isPressed) rotationInput -= 1f;
-            if(Keyboard.current.eKey.isPressed) rotationInput += 1f;
+            if(Keyboard.current.aKey.isPressed) rotationInput -= 1f;
+            if(Keyboard.current.dKey.isPressed) rotationInput += 1f;
         }else{
             if(Input.GetKey(rotateLeftKey)) rotationInput -= 1f;
             if(Input.GetKey(rotateRightKey)) rotationInput += 1f;
@@ -88,43 +92,70 @@ public class GridRotator : MonoBehaviour
     void HandleMouseInput(){
         if(useInputSystem) HandleMouseInputSystem();
         else HandleMouseLegacy();
+        
+        ApplyInertia();
     }
     
     void HandleMouseInputSystem(){
-        if(Mouse.current.rightButton.wasPressedThisFrame) StartMouseDrag();
-        if(Mouse.current.rightButton.wasReleasedThisFrame) EndMouseDrag();
+        if(Mouse.current.rightButton.wasPressedThisFrame){
+            StartMouseDrag();
+        }
+        
+        if(Mouse.current.rightButton.wasReleasedThisFrame){
+            EndMouseDrag();
+        }
         
         if(isMouseDragging){
             Vector2 currentMousePosition = Mouse.current.position.ReadValue();
             Vector2 mouseDelta = currentMousePosition - lastMousePosition;
             
-            if(mouseDelta.magnitude > .1f){
-                float rotationDelta = mouseDelta.x * mouseRotationSpeed * Time.deltaTime;
-                
-                if(invertMouseRotation) rotationDelta *= -1f;
-                targetRotationY += rotationDelta;
-            }
+            float rotationDelta = CalculateMouseRotationDelta(mouseDelta.x);
+            targetRotationY += rotationDelta;
+            
+            mouseRotationVelocity = rotationDelta / Time.deltaTime;
+            inertiaTimeRemaining = mouseInertiaDuration;
             
             lastMousePosition = currentMousePosition;
         }
     }
     
     void HandleMouseLegacy(){
-        if(Input.GetMouseButtonDown(1)) StartMouseDrag();
-        if(Input.GetMouseButtonUp(1)) EndMouseDrag();
+        if(Input.GetMouseButtonDown(1)){
+            StartMouseDrag();
+        }
+        
+        if(Input.GetMouseButtonUp(1)){
+            EndMouseDrag();
+        }
         
         if(isMouseDragging){
             Vector2 currentMousePosition = Input.mousePosition;
             Vector2 mouseDelta = currentMousePosition - lastMousePosition;
             
-            if(mouseDelta.magnitude > .1f){
-                float rotationDelta = mouseDelta.x * mouseRotationSpeed * Time.deltaTime;
-                
-                if(invertMouseRotation) rotationDelta *= -1f;
-                targetRotationY += rotationDelta;
-            }
+            float rotationDelta = CalculateMouseRotationDelta(mouseDelta.x);
+            targetRotationY += rotationDelta;
+            
+            mouseRotationVelocity = rotationDelta / Time.deltaTime;
+            inertiaTimeRemaining = mouseInertiaDuration;
             
             lastMousePosition = currentMousePosition;
+        }
+    }
+    
+    float CalculateMouseRotationDelta(float mouseDeltaX){
+        float rotationDelta = mouseDeltaX * mouseRotationSensitivity;
+        if(invertMouseRotation) rotationDelta *= -1f;
+        return rotationDelta;
+    }
+    
+    void ApplyInertia(){
+        if(inertiaTimeRemaining > 0f && !isMouseDragging){
+            float inertiaProgress = inertiaTimeRemaining / mouseInertiaDuration;
+            float rotationDelta = mouseRotationVelocity * Time.deltaTime * inertiaProgress;
+            targetRotationY += rotationDelta;
+            
+            inertiaTimeRemaining -= Time.deltaTime;
+            mouseRotationVelocity *= Mathf.Exp(-Time.deltaTime * 5f);
         }
     }
     
@@ -132,6 +163,7 @@ public class GridRotator : MonoBehaviour
         if(!rotationEnabled) return;
         
         isMouseDragging = true;
+        mouseRotationVelocity = 0f;
         lastMousePosition = (useInputSystem) ? 
             Mouse.current.position.ReadValue() : 
             Input.mousePosition;
@@ -147,12 +179,13 @@ public class GridRotator : MonoBehaviour
     }
     
     void UpdateRotation(){
-        currentRotationY = Mathf.SmoothDampAngle(
+        currentRotationY = Mathf.LerpAngle(
             currentRotationY, 
             targetRotationY, 
-            ref rotationVelocity, 
-            smoothTime
+            Time.deltaTime / smoothTime
         );
+        
+        rotationVelocity = Mathf.DeltaAngle(currentRotationY, targetRotationY) / Time.deltaTime;
         
         Vector3 euler = transform.eulerAngles;
         euler.y = currentRotationY;
@@ -164,16 +197,19 @@ public class GridRotator : MonoBehaviour
     }
     
     void UpdateGridManagerState(){
-        if(gridManager != null) gridManager.SetRotationState(isRotating || isMouseDragging);
+        if(gridManager != null) gridManager.SetRotationState(isRotating || isMouseDragging || inertiaTimeRemaining > 0f);
     }
     
     public void EnableRotation(bool enable){
         rotationEnabled = enable;
         
-        if(!enable && isMouseDragging) EndMouseDrag();
+        if(!enable && isMouseDragging){
+            EndMouseDrag();
+            inertiaTimeRemaining = 0f;
+        }
     }
     
-    public bool IsRotating() => isRotating || isMouseDragging || keyboardRotating;
+    public bool IsRotating() => isRotating || isMouseDragging || keyboardRotating || inertiaTimeRemaining > 0f;
     public float GetCurrentRotation() => currentRotationY;
     public bool RotationStateChangedThisFrame() => wasRotatingLastFrame != isRotating;
     
@@ -182,6 +218,7 @@ public class GridRotator : MonoBehaviour
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
             isMouseDragging = false;
+            inertiaTimeRemaining = 0f;
         }
     }
 }

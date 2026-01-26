@@ -35,7 +35,8 @@ public class GridManager : MonoBehaviour
     
     [Header("CURSOR DETECTION")]
     [SerializeField] private LayerMask gridLayerMask = -1;
-    
+    [SerializeField] private GridHighlight gridHighlight;
+
     [Header("EDITOR CONTROLS")]
     [SerializeField] private bool initializeFirst = true;
     [SerializeField] private bool showGizmos = true;
@@ -45,7 +46,6 @@ public class GridManager : MonoBehaviour
     
     [Header("INTERACTION SETTINGS")]
     [SerializeField] private bool enableHover = true;
-    [SerializeField] private bool enableRotation = true;
     private bool isAnimating;
     private bool isBeingRotated;
     private float animationTimer;
@@ -242,7 +242,7 @@ public class GridManager : MonoBehaviour
                 tileData.gameObject.transform.localScale = tileData.targetScale;
                 
                 Vector3 localPos = tileData.gameObject.transform.localPosition;
-                localPos.y = 0f; // Reset to original Y
+                localPos.y = 0f;
                 tileData.gameObject.transform.localPosition = localPos;
             }
         }
@@ -268,6 +268,11 @@ public class GridManager : MonoBehaviour
     
     void DetectCursor(){
         if(isAnimating || isBeingRotated || !enableHover) return;
+        if(gridHighlight.IsAnimating) return;
+        if(OpenCatalogButton.Instance.IsPanelActive()){
+            ResetTileColor(lastHoveredTile);
+            return;
+        }
         Vector2 mousePosition = Mouse.current.position.ReadValue();
         
         Ray ray = Camera.main.ScreenPointToRay(mousePosition);
@@ -304,6 +309,7 @@ public class GridManager : MonoBehaviour
     }
     
     void ResetTileColor(GameObject tile){
+        if(tile == null) return;
         GridTileInfo tileInfo = tile.GetComponent<GridTileInfo>();
         if(tileInfo != null && tileInfo.originalMaterial != null){
             Renderer renderer = tile.GetComponent<Renderer>();

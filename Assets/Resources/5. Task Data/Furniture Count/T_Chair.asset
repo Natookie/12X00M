@@ -16,4 +16,4 @@ MonoBehaviour:
   description: 
   rewardCoins: 50
   requiredType: 2
-  requiredCount: 1
+  requiredCount: 2

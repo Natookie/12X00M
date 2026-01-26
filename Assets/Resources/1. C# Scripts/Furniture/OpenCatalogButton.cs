@@ -21,10 +21,6 @@ public class OpenCatalogButton : MonoBehaviour
         root.AddGestureHandler<Gesture.OnUnhover>(OnUnhover);
     }
 
-    void Update(){
-        if(Keyboard.current.escapeKey.wasPressedThisFrame && catalogPanel.activeSelf) ActivateCatalogPanel(false);
-    }
-
     void OnClick(Gesture.OnPress evt){
         if(!catalogPanel.activeSelf) ActivateCatalogPanel(true);
     }
@@ -35,5 +31,6 @@ public class OpenCatalogButton : MonoBehaviour
 
     }
 
+    public bool IsPanelActive() => catalogPanel.activeSelf;
     public void ActivateCatalogPanel(bool type) => catalogPanel.SetActive(type);   
 }

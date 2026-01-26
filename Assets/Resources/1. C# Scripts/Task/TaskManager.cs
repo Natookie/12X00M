@@ -16,19 +16,28 @@ public class TaskManager : MonoBehaviour
     [Header("REFERENCES")]
     [SerializeField] private TaskUI taskUI;
     [SerializeField] private MoneyManager moneyManager;
+    [Space(10)]
     [SerializeField] private int refreshCost = 50;
-    [SerializeField] private int completeReward = 100;
 
     private List<TaskData> mainTasks = new List<TaskData>();
     private List<TaskData> extraTasks = new List<TaskData>();
 
     public System.Action OnTasksUpdated;
+    public static TaskManager Instance {get; private set;}
+
+    void Awake(){
+        if(Instance == null) Instance = this;
+        else{
+            Destroy(gameObject);
+            return;
+        }
+    }
 
     void Start(){
         AssignRandomTasks();
     }
 
-    public void OnFurniturePlaced(){
+    public void OnFurnitureUpdated(){
         if(taskUI != null) taskUI.UpdateUI();
     }
 
@@ -44,49 +53,41 @@ public class TaskManager : MonoBehaviour
         }
         
         int mainCount = Mathf.Min(maxMainTasks, availableTasks.Count);
-        for(int i = 0; i < mainCount; i++) mainTasks.Add(availableTasks[i]);
+        for(int i = 0; i < mainCount; i++){
+            availableTasks[i].InitializeProgress(roomStats);
+            mainTasks.Add(availableTasks[i]);
+        }
         
         if(availableTasks.Count > mainCount){
             int extraCount = Mathf.Min(maxExtraTasks, availableTasks.Count - mainCount);
             for(int i = mainCount; i < mainCount + extraCount; i++){
+                availableTasks[i].InitializeProgress(roomStats);
                 extraTasks.Add(availableTasks[i]);
             }
         }
         
         OnTasksUpdated?.Invoke();
         if(taskUI != null) taskUI.UpdateUI();
-        
-        Debug.Log($"Assigned {mainTasks.Count} main tasks and {extraTasks.Count} extra tasks");
     }
 
     public void RefreshMainTasks(){
-        if(moneyManager != null && !moneyManager.CanAfford(refreshCost)){
-            Debug.Log("Not enough money to refresh main tasks");
-            return;
-        }
+        if(moneyManager != null && !moneyManager.CanAfford(refreshCost)) return;
         if(moneyManager != null) moneyManager.AddMoney(-refreshCost);
         
         RefreshTaskList(mainTasks, maxMainTasks);
         
         OnTasksUpdated?.Invoke();
         if(taskUI != null) taskUI.UpdateUI();
-        
-        Debug.Log("Refreshed main tasks");
     }
 
     public void RefreshExtraTasks(){
-        if(moneyManager != null && !moneyManager.CanAfford(refreshCost)){
-            Debug.Log("Not enough money to refresh extra tasks");
-            return;
-        }
+        if(moneyManager != null && !moneyManager.CanAfford(refreshCost)) return;
         if(moneyManager != null) moneyManager.AddMoney(-refreshCost);
         
         RefreshTaskList(extraTasks, maxExtraTasks);
         
         OnTasksUpdated?.Invoke();
         if(taskUI != null) taskUI.UpdateUI();
-        
-        Debug.Log("Refreshed extra tasks");
     }
 
     void RefreshTaskList(List<TaskData> taskList, int maxTasks){
@@ -105,42 +106,50 @@ public class TaskManager : MonoBehaviour
         }
         
         int count = Mathf.Min(maxTasks, availableTasks.Count);
-        for(int i = 0; i < count; i++) taskList.Add(availableTasks[i]);
+        for(int i = 0; i < count; i++){
+            availableTasks[i].InitializeProgress(roomStats);
+            taskList.Add(availableTasks[i]);
+        }
     }
 
-    public void CheckCompletedTask(){
-        bool completedAny = false;
+    public void EvaluateAllTasksAtRoundEnd(){
+        int completedCount = 0;
+        int failedCount = 0;
         
+        //Main task completion -> Add trust / Punish
         for(int i = mainTasks.Count - 1; i >= 0; i--){
-            if(IsTaskCompleted(mainTasks[i])){
-                CompleteTask(mainTasks[i], true);
-                mainTasks.RemoveAt(i);
-                completedAny = true;
-            }
-        }
-        
-        for(int i = extraTasks.Count - 1; i >= 0; i--){
-            if(IsTaskCompleted(extraTasks[i])){
-                CompleteTask(extraTasks[i], false);
-                extraTasks.RemoveAt(i);
-                completedAny = true;
-            }
-        }
-        
-        if(completedAny){
-            OnTasksUpdated?.Invoke();
-            if(taskUI != null) taskUI.UpdateUI();
+            TaskData task = mainTasks[i];
             
-            AutoRefillEmptySlots();
+            if(IsTaskCompleted(task)){
+                TrustManager.Instance?.AddTrust(1);
+                completedCount++;
+            }else{
+                TrustManager.Instance?.AddTrust(-1);
+                failedCount++;
+            }
+            
+            mainTasks.RemoveAt(i);
         }
+        
+        //Main task completion -> Add money / No punishment
+        for(int i = extraTasks.Count - 1; i >= 0; i--){
+            TaskData task = extraTasks[i];
+            
+            if(IsTaskCompleted(task)) MoneyManager.Instance?.AddMoney(task.rewardCoins);
+            extraTasks.RemoveAt(i);
+        }
+        
+        AssignRandomTasks();
+        
+        Debug.Log($"Round ended: {completedCount} completed (+{completedCount} trust), {failedCount} failed (-{failedCount} trust)");
+        OnTasksUpdated?.Invoke();
     }
 
-    void CompleteTask(TaskData task, bool isMainTask){
-        if(moneyManager != null){
-            int reward = completeReward * (isMainTask ? 2 : 1);
-            moneyManager.AddMoney(reward);
-            Debug.Log($"Completed task: {task.name}. Reward: ${reward}");
-        }
+    public bool HasCompletableTasks(){
+        foreach(TaskData task in mainTasks) if(IsTaskCompleted(task)) return true;
+        foreach(TaskData task in extraTasks) if(IsTaskCompleted(task)) return true;
+        
+        return false;
     }
 
     void AutoRefillEmptySlots(){

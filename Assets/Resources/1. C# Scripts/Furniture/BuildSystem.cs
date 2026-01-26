@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 using System.Collections.Generic;
 
 public class BuildSystem : MonoBehaviour
@@ -8,8 +9,10 @@ public class BuildSystem : MonoBehaviour
     
     [Header("REFERENCES")]
     [SerializeField] private GridManager gridManager;
+    [SerializeField] private GridHighlight gridHighlight;
     [SerializeField] private RoomStats roomStats;
     [SerializeField] private MoneyManager moneyManager;
+    [SerializeField] private MoneyUI moneyUI;
     [SerializeField] private TaskManager taskManager;
     [Space(10)]
     [SerializeField] private Transform furnitureParent;
@@ -23,7 +26,12 @@ public class BuildSystem : MonoBehaviour
     private GameObject placementPreview;
     private bool furnitureIsOnPending = false;
     private Vector2Int pendingGridPosition;
+    private Vector3 lastClickedMousePosition;
+
     private bool isPendingPlacementValid = false;
+    private bool isMouseOverGrid = false;
+    private Vector2Int lastValidGridPosition;
+    private bool hasValidLastPosition = false;
     
     private HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
     private Dictionary<Vector2Int, FurnitureInstance> placedFurniture = new Dictionary<Vector2Int, FurnitureInstance>();
@@ -43,18 +51,20 @@ public class BuildSystem : MonoBehaviour
         
         HandleMouseInput();
         
-        if(!furnitureIsOnPending && placementPreview != null) UpdatePlacementPreviewPosition();
+        if(!furnitureIsOnPending && placementPreview != null){
+            UpdatePlacementPreviewPosition();
+        }
     }
     
     void HandleMouseInput(){
         if(Mouse.current.leftButton.wasPressedThisFrame){
-            if(currentSelectedFurniture != null && !furnitureIsOnPending) ConfirmPosition();
+            if(currentSelectedFurniture != null && !furnitureIsOnPending && isMouseOverGrid) ConfirmPosition();
             else if(furnitureIsOnPending && isPendingPlacementValid) PlaceFurniture();
         }
         
         if(Mouse.current.rightButton.wasPressedThisFrame) CancelPlacement();
         if(Keyboard.current.rKey.wasPressedThisFrame && currentSelectedFurniture != null) RotateFurniture();
-        if(Keyboard.current.escapeKey.wasPressedThisFrame) ClearSelection();
+        if(Keyboard.current.escapeKey.wasPressedThisFrame) CancelPlacement();
     }
     
     public void SetFurnitureData(FurnitureData data){
@@ -67,10 +77,10 @@ public class BuildSystem : MonoBehaviour
         
         currentSelectedFurniture = data;
         furnitureIsOnPending = false;
-        
-        Debug.Log($"Selected furniture: {data.FurnitureName}");
+        hasValidLastPosition = false;
         
         CreatePlacementPreview();
+        gridHighlight.HighlightUnoccupiedTiles();
     }
     
     void CreatePlacementPreview(){
@@ -97,22 +107,52 @@ public class BuildSystem : MonoBehaviour
             renderer.materials = materials;
         }
     }
-    
+
     void UpdatePlacementPreviewPosition(){
         if(placementPreview == null || gridManager == null) return;
         
         Vector3? mouseGridPos = GetMouseGridPosition();
-        if(!mouseGridPos.HasValue) return;
+        isMouseOverGrid = mouseGridPos.HasValue;
         
-        Vector2Int gridPos = WorldToGridPosition(mouseGridPos.Value);
-        bool isValid = IsPlacementValid(gridPos, currentSelectedFurniture.FurnitureSize);
+        if(isMouseOverGrid){
+            Vector2Int gridPos = WorldToGridPosition(mouseGridPos.Value);
+            Vector2Int adjustedPos = AdjustPositionForFurnitureSize(gridPos);
+            
+            bool isValid = IsPlacementValid(adjustedPos, currentSelectedFurniture.FurnitureSize);
+            Vector3 worldPos = GetTileWorldPosition(adjustedPos, currentSelectedFurniture.FurnitureSize);
+            placementPreview.transform.position = worldPos;
+            
+            lastValidGridPosition = adjustedPos;
+            hasValidLastPosition = true;
+            
+            Material currentMaterial = isValid ? validPlacementMaterial : invalidPlacementMaterial;
+            SetPreviewMaterials(placementPreview, currentMaterial);
+        }else if(hasValidLastPosition){
+            Vector3 worldPos = GetTileWorldPosition(lastValidGridPosition, currentSelectedFurniture.FurnitureSize);
+            placementPreview.transform.position = worldPos;
+            
+            SetPreviewMaterials(placementPreview, invalidPlacementMaterial);
+        }else placementPreview.transform.position = Vector3.zero;
+    }
+
+    Vector2Int AdjustPositionForFurnitureSize(Vector2Int gridPos){
+        if(currentSelectedFurniture == null) return gridPos;
         
-        Vector3 worldPos = GetTileWorldPosition(gridPos, currentSelectedFurniture.FurnitureSize);
+        Vector2Int size = currentSelectedFurniture.FurnitureSize;
+        int halfWidth = gridManager.GridWidth / 2;
+        int halfLength = gridManager.GridLength / 2;
         
-        placementPreview.transform.position = worldPos;
+        Vector2Int adjustedPos = gridPos;
         
-        Material currentMaterial = isValid ? validPlacementMaterial : invalidPlacementMaterial;
-        SetPreviewMaterials(placementPreview, currentMaterial);
+        int minX = -(halfWidth - (size.x / 2));
+        int maxX = halfWidth - ((size.x - 1) / 2);
+        int minY = -(halfLength - (size.y / 2));
+        int maxY = halfLength - ((size.y - 1) / 2);
+        
+        adjustedPos.x = Mathf.Clamp(adjustedPos.x, minX, maxX);
+        adjustedPos.y = Mathf.Clamp(adjustedPos.y, minY, maxY);
+        
+        return adjustedPos;
     }
     
     Vector3 GetTileWorldPosition(Vector2Int gridPos, Vector2Int size){
@@ -139,7 +179,7 @@ public class BuildSystem : MonoBehaviour
         Renderer tileRenderer = centerTile.GetComponent<Renderer>();
         if(tileRenderer != null){
             float tileHeight = tileRenderer.bounds.size.y;
-            tilePos.y += tileHeight * 0.5f; // Bottom of furniture at tile top
+            tilePos.y += tileHeight * 0.5f;
             
             if(placementPreview != null){
                 Renderer furnitureRenderer = placementPreview.GetComponent<Renderer>();
@@ -154,7 +194,7 @@ public class BuildSystem : MonoBehaviour
         
         return tilePos;
     }
-    
+
     Vector3 CalculatePositionFromGrid(Vector2Int gridPos, Vector2Int size){
         Vector3 center = gridManager.transform.position;
         float gridSpacing = gridManager.GridSpacing;
@@ -184,7 +224,8 @@ public class BuildSystem : MonoBehaviour
         
         pendingGridPosition = WorldToGridPosition(mouseGridPos.Value);
         isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
-        
+        if(!isPendingPlacementValid) return;
+
         Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
         
         placementPreview.transform.position = worldPos;
@@ -192,14 +233,12 @@ public class BuildSystem : MonoBehaviour
         Material currentMaterial = isPendingPlacementValid ? validPlacementMaterial : invalidPlacementMaterial;
         SetPreviewMaterials(placementPreview, currentMaterial);
         
-        //PlacementPreview, nanti ganti
         if(placementPreview != null && isPendingPlacementValid){
             placementPreview.transform.localScale = Vector3.one * 1.05f;
         }
+        lastClickedMousePosition = Mouse.current.position.ReadValue();
         
         furnitureIsOnPending = true;
-        
-        Debug.Log($"Position confirmed at grid {pendingGridPosition}. Valid: {isPendingPlacementValid}");
     }
     
     Vector3? GetMouseGridPosition(){
@@ -218,7 +257,13 @@ public class BuildSystem : MonoBehaviour
             Plane gridPlane = new Plane(Vector3.up, gridManager.transform.position);
             float distance;
             if(gridPlane.Raycast(ray, out distance)){
-                return ray.GetPoint(distance);
+                Vector3 point = ray.GetPoint(distance);
+                
+                Vector2Int gridPos = WorldToGridPosition(point);
+                int halfWidth = gridManager.GridWidth / 2;
+                int halfLength = gridManager.GridLength / 2;
+                
+                if(Mathf.Abs(gridPos.x) <= halfWidth && Mathf.Abs(gridPos.y) <= halfLength) return point;
             }
         }
         
@@ -228,20 +273,18 @@ public class BuildSystem : MonoBehaviour
     Vector2Int WorldToGridPosition(Vector3 worldPosition){
         if(gridManager == null) return Vector2Int.zero;
         
-        GameObject tile = gridManager.GetTileAtWorldPosition(worldPosition);
-        if(tile != null){
-            GridTileInfo tileInfo = tile.GetComponent<GridTileInfo>();
-            if(tileInfo != null) return tileInfo.gridLocalPosition;
-        }
+        Quaternion gridRotation = gridManager.transform.rotation;
+        Quaternion inverseRotation = Quaternion.Inverse(gridRotation);
         
-        Vector3 center = gridManager.transform.position;
+        Vector3 localPos = inverseRotation * (worldPosition - gridManager.transform.position);
+        
         float gridSpacing = gridManager.GridSpacing;
         
         float offsetX = (gridManager.GridWidth % 2 == 0) ? gridSpacing * 0.5f : 0f;
         float offsetZ = (gridManager.GridLength % 2 == 0) ? gridSpacing * 0.5f : 0f;
         
-        int gridX = Mathf.RoundToInt((worldPosition.x - center.x - offsetX) / gridSpacing);
-        int gridZ = Mathf.RoundToInt((worldPosition.z - center.z - offsetZ) / gridSpacing);
+        int gridX = Mathf.RoundToInt((localPos.x - offsetX) / gridSpacing);
+        int gridZ = Mathf.RoundToInt((localPos.z - offsetZ) / gridSpacing);
         
         return new Vector2Int(gridX, gridZ);
     }
@@ -252,6 +295,13 @@ public class BuildSystem : MonoBehaviour
         List<Vector2Int> cellsToCheck = GetOccupiedCells(gridPos, size);
         
         foreach(Vector2Int cell in cellsToCheck){
+            int halfWidth = gridManager.GridWidth / 2;
+            int halfLength = gridManager.GridLength / 2;
+            
+            if(Mathf.Abs(cell.x) > halfWidth || Mathf.Abs(cell.y) > halfLength){
+                return false;
+            }
+            
             GameObject tile = gridManager.GetTileAtLocalPosition(cell);
             if(tile == null) return false;
         }
@@ -282,7 +332,13 @@ public class BuildSystem : MonoBehaviour
         List<Vector2Int> occupied = GetOccupiedCells(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
         Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
         
-        GameObject furnitureObj = Instantiate(currentSelectedFurniture.FurniturePrefab, worldPos, placementPreview.transform.rotation, furnitureParent);
+        GameObject furnitureObj = Instantiate(
+            currentSelectedFurniture.FurniturePrefab, 
+            worldPos, 
+            Quaternion.identity,
+            furnitureParent
+        );
+        furnitureObj.transform.localRotation = Quaternion.identity;
         furnitureObj.name = currentSelectedFurniture.FurnitureName;
 
         FurnitureController furnitureController = furnitureObj.AddComponent<FurnitureController>();
@@ -294,9 +350,9 @@ public class BuildSystem : MonoBehaviour
             gameObject = furnitureObj,
             gridPosition = pendingGridPosition,
             occupiedCells = new List<Vector2Int>(occupied),
-            rotation = furnitureObj.transform.rotation
+            rotation = furnitureObj.transform.localRotation
         };
-        
+
         foreach(Vector2Int cell in occupied){
             occupiedCells.Add(cell);
             placedFurniture[cell] = instance;
@@ -304,27 +360,20 @@ public class BuildSystem : MonoBehaviour
         
         if(roomStats != null) roomStats.AddFurniture(currentSelectedFurniture);
         if(moneyManager != null) moneyManager.AddMoney(-currentSelectedFurniture.FurnitureCost);
-        if(taskManager != null) taskManager.OnFurniturePlaced();
+        if(moneyUI != null) moneyUI.ShowMoneyFeedback(-currentSelectedFurniture.FurnitureCost, lastClickedMousePosition);
+        if(taskManager != null) taskManager.OnFurnitureUpdated();
 
-        Debug.Log($"Placed {currentSelectedFurniture.FurnitureName} at grid {pendingGridPosition}");
-        Debug.Log($"Money - {currentSelectedFurniture.FurnitureCost}");
-        ClearSelection();
+        StartCoroutine(DelayCancelPlacement());
     }
 
-    public bool RemoveFurniture(Vector3 worldPosition){
-        Vector2Int gridPos = WorldToGridPosition(worldPosition);
-        
-        if(placedFurniture.ContainsKey(gridPos)){
-            FurnitureInstance furniture = placedFurniture[gridPos];
+    public bool RemoveFurniture(Vector2Int worldPosition){
+        if(placedFurniture.ContainsKey(worldPosition)){
+            FurnitureInstance furniture = placedFurniture[worldPosition];
             
             foreach(Vector2Int cell in furniture.occupiedCells){
                 occupiedCells.Remove(cell);
                 placedFurniture.Remove(cell);
             }
-            
-            if(furniture.gameObject != null) Destroy(furniture.gameObject);
-            
-            Debug.Log($"Removed {furniture.furnitureData.FurnitureName} from grid");
             return true;
         }
         
@@ -334,8 +383,7 @@ public class BuildSystem : MonoBehaviour
     void RotateFurniture(){
         if(placementPreview == null || currentSelectedFurniture == null) return;
         
-        placementPreview.transform.Rotate(0, 90, 0);
-        
+        placementPreview.transform.Rotate(0, 90, 0, Space.Self);
         if(furnitureIsOnPending){
             isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
             
@@ -345,6 +393,7 @@ public class BuildSystem : MonoBehaviour
     }
     
     void CancelPlacement(){
+        gridHighlight.StopAllAnimations();
         if(placementPreview != null){
             Destroy(placementPreview);
             placementPreview = null;
@@ -352,19 +401,42 @@ public class BuildSystem : MonoBehaviour
         
         currentSelectedFurniture = null;
         furnitureIsOnPending = false;
-        
-        Debug.Log("Placement cancelled");
+        hasValidLastPosition = false;
     }
-    
-    void ClearSelection(){
+
+    IEnumerator DelayCancelPlacement(){
+        yield return new WaitForSeconds(0.1f);
         CancelPlacement();
-        Debug.Log("Selection cleared");
     }
     
     public void SelectFurniture(FurnitureData furnitureData){
         SetFurnitureData(furnitureData);
     }
-    
+
+    public List<Vector2Int> GetAllUnoccupiedTilePositions(){
+        List<Vector2Int> unoccupiedPositions = new List<Vector2Int>();
+        
+        if(gridManager == null) return unoccupiedPositions;
+        
+        int halfWidth = gridManager.GridWidth / 2;
+        int halfLength = gridManager.GridLength / 2;
+        
+        for(int x = -halfWidth; x <= halfWidth; x++){
+            for(int y = -halfLength; y <= halfLength; y++){
+                Vector2Int gridPos = new Vector2Int(x, y);
+                
+                GameObject tile = gridManager.GetTileAtLocalPosition(gridPos);
+                if(tile == null) continue;
+                
+                if(!occupiedCells.Contains(gridPos)) unoccupiedPositions.Add(gridPos);
+            }
+        }
+        
+        return unoccupiedPositions;
+    }
+
+    public bool IsInBuildMode => currentSelectedFurniture != null && furnitureIsOnPending;
+
     void OnDrawGizmos(){
         if(!Application.isPlaying || gridManager == null) return;
         
