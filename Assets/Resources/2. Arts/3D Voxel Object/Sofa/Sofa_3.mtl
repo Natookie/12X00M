@@ -1,0 +1,13 @@
+# Blender 5.0.1 MTL File: 'sofa.blend'
+# www.blender.org
+
+newmtl Sofa_3_Material
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Sofa_3_Color.png
+map_Ns Sofa_3_Roughness.png
+map_refl Sofa_3_Metallic.png
