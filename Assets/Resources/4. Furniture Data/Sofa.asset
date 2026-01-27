@@ -15,7 +15,7 @@ MonoBehaviour:
   furnitureName: Sofa
   furnitureCost: 800
   furnitureSize: {x: 2, y: 1}
-  furnitureType: 2
+  furnitureType: 4
   charismaContribution: 20
   comfortContribution: 60
   functionalityContribution: 5

@@ -15,7 +15,7 @@ MonoBehaviour:
   furnitureName: Wardrobe
   furnitureCost: 600
   furnitureSize: {x: 2, y: 1}
-  furnitureType: 2
+  furnitureType: 11
   charismaContribution: 15
   comfortContribution: 0
   functionalityContribution: 50

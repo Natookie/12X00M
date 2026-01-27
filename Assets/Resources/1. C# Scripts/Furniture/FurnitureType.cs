@@ -10,4 +10,8 @@ public enum FurnitureType
     Lamp,
     Shelf,
     Desk,
+    Aquarium,
+    Bookshelf,
+    TV,
+    Wardrobe,
 }

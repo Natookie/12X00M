@@ -15,7 +15,7 @@ MonoBehaviour:
   furnitureName: Bookshelf
   furnitureCost: 400
   furnitureSize: {x: 2, y: 1}
-  furnitureType: 6
+  furnitureType: 9
   charismaContribution: 25
   comfortContribution: 0
   functionalityContribution: 30

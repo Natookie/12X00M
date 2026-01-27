@@ -15,7 +15,7 @@ MonoBehaviour:
   furnitureName: TV
   furnitureCost: 750
   furnitureSize: {x: 2, y: 1}
-  furnitureType: 2
+  furnitureType: 10
   charismaContribution: 30
   comfortContribution: 40
   functionalityContribution: 10

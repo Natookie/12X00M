@@ -15,7 +15,7 @@ MonoBehaviour:
   furnitureName: Desk
   furnitureCost: 300
   furnitureSize: {x: 2, y: 1}
-  furnitureType: 2
+  furnitureType: 7
   charismaContribution: 10
   comfortContribution: 5
   functionalityContribution: 40
