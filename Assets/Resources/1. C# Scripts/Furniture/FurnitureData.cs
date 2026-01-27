@@ -11,9 +11,9 @@ public class FurnitureData : ScriptableObject
     public FurnitureType furnitureType;
 
     [Header("TRAIT VALUE")]
-    [Range(-10, 10)] [SerializeField] private int charismaContribution = 0;
-    [Range(-10, 10)] [SerializeField] private int comfortContribution = 0;
-    [Range(-10, 10)] [SerializeField] private int functionalityContribution = 0;
+    [Range(-100, 100)] [SerializeField] private int charismaContribution = 0;
+    [Range(-100, 100)] [SerializeField] private int comfortContribution = 0;
+    [Range(-100, 100)] [SerializeField] private int functionalityContribution = 0;
 
     [Header("VISUAL")]
     public Sprite furnitureIcon;

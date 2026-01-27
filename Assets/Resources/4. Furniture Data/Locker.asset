@@ -15,7 +15,7 @@ MonoBehaviour:
   furnitureName: Locker
   furnitureCost: 0
   furnitureSize: {x: 1, y: 1}
-  furnitureType: 6
+  furnitureType: 2
   charismaContribution: 5
   comfortContribution: 0
   functionalityContribution: -4
