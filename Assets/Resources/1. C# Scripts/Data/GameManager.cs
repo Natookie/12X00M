@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -10,6 +11,17 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+    }
+
+    void Start()
+    {
+        StartCoroutine("PlayMenuMusic");
+    }
+
+    private IEnumerator PlayMenuMusic()
+    {
+        yield return new WaitForEndOfFrame();
+        AudioManager.Instance.PlayMusic("game");
     }
 
     public void EndGame(){
