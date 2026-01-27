@@ -19,8 +19,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioMixerGroup sfxGroup;
     [SerializeField] private int sfxPoolSize = 10;
 
-    private Dictionary<string, AudioClip> musicDictionary;
-    private Dictionary<string, AudioClip> sfxDictionary;
+    private Dictionary<string, AudioClip> musicDictionary = new Dictionary<string, AudioClip>();
+    private Dictionary<string, AudioClip> sfxDictionary = new Dictionary<string, AudioClip>();
     private AudioSource musicSource;
     private List<AudioSource> sfxPool;
     private AudioSource currentSFXLooping; // Hold the current SFX that is looping
