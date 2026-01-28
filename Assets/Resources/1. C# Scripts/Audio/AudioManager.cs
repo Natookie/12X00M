@@ -116,7 +116,7 @@ public class AudioManager : MonoBehaviour
     public void PlaySFX(string key)
     {
         // Check if key exist
-        if (!sfxDictionary.ContainsKey(key))
+        if (!musicDictionary.ContainsKey(key))
         {
             Debug.Log("SFX key: " + key + ", does not exist");
             return;
@@ -132,7 +132,7 @@ public class AudioManager : MonoBehaviour
     public void PlayLoopingSFX(string key, bool overrideCurrent)
     {
         // Check if key exist
-        if (!sfxDictionary.ContainsKey(key))
+        if (!musicDictionary.ContainsKey(key))
         {
             Debug.Log("SFX key: " + key + ", does not exist");
             return;
@@ -162,24 +162,14 @@ public class AudioManager : MonoBehaviour
 
     public void LoadVolumeSettings()
     {
-        float masterVol = PlayerPrefs.GetFloat("masterVolume", 1f);
         float musicVol = PlayerPrefs.GetFloat("musicVolume", 1f);
         float sfxVol = PlayerPrefs.GetFloat("sfxVolume", 1f);
 
-        float masterFinalVolume = Mathf.Log10(Mathf.Clamp(masterVol, 0.0001f, 1f)) * 20f;
-        float musicFinalVolume = Mathf.Log10(Mathf.Clamp(musicVol, 0.0001f, 1f)) * 20f;
-        float sfxFinalVolume = Mathf.Log10(Mathf.Clamp(sfxVol, 0.0001f, 1f)) * 20f;
+        float m = Mathf.Log10(Mathf.Clamp(musicVol, 0.0001f, 1f)) * 20f;
+        float s = Mathf.Log10(Mathf.Clamp(sfxVol, 0.0001f, 1f)) * 20f;
 
-        audioMixer.SetFloat("MasterVolume", masterFinalVolume);
-        audioMixer.SetFloat("MusicVolume", musicFinalVolume);
-        audioMixer.SetFloat("SFXVolume", sfxFinalVolume);
-    }
-
-    public void SetMasterVolume(float value)
-    {
-        float v = Mathf.Log10(Mathf.Clamp(value, 0.0001f, 1f)) * 20f;
-        audioMixer.SetFloat("MasterVolume", v);
-        PlayerPrefs.SetFloat("masterVolume", value);
+        audioMixer.SetFloat("MusicVolume", m);
+        audioMixer.SetFloat("SFXVolume", s);
     }
 
     public void SetMusicVolume(float value)
@@ -195,4 +185,5 @@ public class AudioManager : MonoBehaviour
         audioMixer.SetFloat("SFXVolume", v);
         PlayerPrefs.SetFloat("sfxVolume", value);
     }
+
 }

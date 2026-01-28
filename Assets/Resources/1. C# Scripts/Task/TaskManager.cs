@@ -33,10 +33,6 @@ public class TaskManager : MonoBehaviour
         }
     }
 
-    void Start(){
-        AssignRandomTasks();
-    }
-
     public void OnFurnitureUpdated(){
         if(taskUI != null) taskUI.UpdateUI();
     }

@@ -16,19 +16,15 @@ public class CatalogItem : MonoBehaviour
 
         root.AddGestureHandler<Gesture.OnPress>(OnClick);
         root.AddGestureHandler<Gesture.OnHover>(OnHover);
-        root.AddGestureHandler<Gesture.OnUnhover>(OnUnhover);
     }
 
     void OnClick(Gesture.OnPress evt){
         if(MoneyManager.Instance.CanAfford(Data.FurnitureCost)){
             BuildSystem.Instance.SetFurnitureData(Data);
-            OpenCatalogButton.Instance.ActivateCatalogPanel(false);
+            //OpenCatalogButton.Instance.ActivateCatalogPanel(false);
         }
     }
     void OnHover(Gesture.OnHover evt){
         preview.ShowPreview(transform.position, Data, MoneyManager.Instance.CanAfford(Data.FurnitureCost));
-    }
-    void OnUnhover(Gesture.OnUnhover evt){
-        
     }
 }

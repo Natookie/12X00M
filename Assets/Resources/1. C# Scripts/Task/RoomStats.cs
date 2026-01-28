@@ -12,6 +12,9 @@ public class RoomStats : MonoBehaviour
     [Header("INDIVIDUAL FURNITURE COUNTS")]
     [SerializeField] private List<FurnitureCountEntry> furnitureCounts = new List<FurnitureCountEntry>();
 
+    [Header("REFERENCES")]
+    [SerializeField] CatalogUI catalogUI;
+
     [System.Serializable]
     public class FurnitureCountEntry{
         public FurnitureData furniture;
@@ -88,6 +91,7 @@ public class RoomStats : MonoBehaviour
         charisma += furniture.CharismaContribution;
         comfort += furniture.ComfortContribution;
         functionality += furniture.FunctionalityContribution;
+        catalogUI.UpdateTraitDisplay(charisma, comfort, functionality);
     }
 
     public void RemoveFurniture(FurnitureData furniture){
@@ -107,6 +111,7 @@ public class RoomStats : MonoBehaviour
         charisma -= furniture.CharismaContribution;
         comfort -= furniture.ComfortContribution;
         functionality -= furniture.FunctionalityContribution;
+        catalogUI.UpdateTraitDisplay(charisma, comfort, functionality);
     }
 
     void UpdateIndividualCount(FurnitureData furniture, int delta){

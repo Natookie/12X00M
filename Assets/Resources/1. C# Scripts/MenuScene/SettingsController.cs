@@ -19,7 +19,7 @@ public class SettingsController : MonoBehaviour
 
     public void OnMasterVolumeChanged()
     {
-        audioManager.SetMasterVolume(masterSlider.Value);
+        //audioManager.SetMasterVolume(masterSlider.Value);
     }
 
     public void OnMusicVolumeChanged()

@@ -89,7 +89,7 @@ public class CatalogEditor : MonoBehaviour
     }
     
     [ContextMenu("Sort by Price (ASC)")] public void SortByPriceAscending(){SortCatalogItems((a, b) => a.Data.furnitureCost.CompareTo(b.Data.furnitureCost));}
-    [ContextMenu("Sort by Price (ASC)")] public void SortByPriceDescending(){SortCatalogItems((a, b) => b.Data.furnitureCost.CompareTo(a.Data.furnitureCost));}
+    [ContextMenu("Sort by Price (DSC)")] public void SortByPriceDescending(){SortCatalogItems((a, b) => b.Data.furnitureCost.CompareTo(a.Data.furnitureCost));}
     [ContextMenu("Sort by Name (A-Z)")] public void SortByNameAscending(){SortCatalogItems((a, b) => a.Data.furnitureName.CompareTo(b.Data.furnitureName));}
     [ContextMenu("Sort by Name (Z-A)")] public void SortByNameDescending(){SortCatalogItems((a, b) => b.Data.furnitureName.CompareTo(a.Data.furnitureName));}
     [ContextMenu("Sort by Charisma (DSC)")] public void SortByCharismaDescending(){SortCatalogItems((a, b) => b.Data.CharismaContribution.CompareTo(a.Data.CharismaContribution));}

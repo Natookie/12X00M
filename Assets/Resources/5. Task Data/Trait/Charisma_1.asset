@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StatThresholdTask
   taskName: 
   description: 
-  rewardCoins: 120
+  rewardCoins: 50
   statType: 0
   requiredValue: 10

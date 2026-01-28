@@ -12,10 +12,24 @@ public class ShortcutController : MonoBehaviour
 
     [Header("REFERENCES")]
     [SerializeField] private OpenCatalogButton openCatalogBtn;
+    [SerializeField] private InformationPanelUI informationPanel;
 
     void Update(){
+        //Skip dialogue
+        if(Keyboard.current.nKey.wasPressedThisFrame){
+            DialogueManager.Instance.SkipTyping();
+            GameManager.Instance.isInitialized = true;
+        }
+        if(!GameManager.Instance.isInitialized) return;
+
         //Open Inventory
-        if(Keyboard.current.spaceKey.wasPressedThisFrame) openCatalogBtn.ActivateCatalogPanel(!openCatalogBtn.IsPanelActive());
+        if(Keyboard.current.digit1Key.wasPressedThisFrame) informationPanel.OnButtonClicked(0);
+        else if(Keyboard.current.digit2Key.wasPressedThisFrame) informationPanel.OnButtonClicked(1);
+        else if(Keyboard.current.digit3Key.wasPressedThisFrame) informationPanel.OnButtonClicked(2);
+
+        //Debug: Add money
+        if(Keyboard.current.leftCtrlKey.isPressed && Keyboard.current.mKey.wasPressedThisFrame) MoneyManager.Instance.AddMoney(200);
+
 
         //Get Inventory selection
     }

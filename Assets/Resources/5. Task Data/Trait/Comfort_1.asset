@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8740779cc1d84b244b872308166b8812, type: 3}
   m_Name: Comfort_1
   m_EditorClassIdentifier: Assembly-CSharp::StatThresholdTask
-  taskName: 
-  description: 
-  rewardCoins: 100
+  taskName: Test123
+  description: IJJIJIJI
+  rewardCoins: 50
   statType: 1
   requiredValue: 10

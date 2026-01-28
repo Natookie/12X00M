@@ -7,6 +7,7 @@ public class OpenCatalogButton : MonoBehaviour
 {
     [SerializeField] private UIBlock2D root;
     [SerializeField] private GameObject catalogPanel;
+    [SerializeField] private InformationPanelUI infoPanel;
 
     public static OpenCatalogButton Instance {get; private set;}
 
@@ -15,22 +16,9 @@ public class OpenCatalogButton : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    void Start(){
-        root.AddGestureHandler<Gesture.OnPress>(OnClick);
-        root.AddGestureHandler<Gesture.OnHover>(OnHover);
-        root.AddGestureHandler<Gesture.OnUnhover>(OnUnhover);
-    }
-
-    void OnClick(Gesture.OnPress evt){
-        if(!catalogPanel.activeSelf) ActivateCatalogPanel(true);
-    }
-    void OnHover(Gesture.OnHover evt){
-
-    }
-    void OnUnhover(Gesture.OnUnhover evt){
-
-    }
-
+    //Harusnya udah ga kepake lagi
+    //Cuman gw ga hapus, karena ada objek yg referensiin script ini
+    //Gw males cari.
     public bool IsPanelActive() => catalogPanel.activeSelf;
     public void ActivateCatalogPanel(bool type) => catalogPanel.SetActive(type);   
 }

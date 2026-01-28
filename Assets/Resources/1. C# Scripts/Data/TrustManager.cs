@@ -21,7 +21,6 @@ public class TrustManager : MonoBehaviour
     }
 
     void Update(){
-        if(trustText != null) trustText.Text = $"Trust: {currentTrust:F0}/{maxTrust}";
         if(currentTrust <= 0) GameManager.Instance?.EndGame();
     }
 

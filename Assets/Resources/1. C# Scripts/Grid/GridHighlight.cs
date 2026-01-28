@@ -33,7 +33,7 @@ public class GridHighlight : MonoBehaviour
     private Coroutine waveAnimationCoroutine;
     
     void OnDisable() => StopAllAnimations();
-    
+
     public void HighlightUnoccupiedTiles(){
         StopAllAnimations();
         
