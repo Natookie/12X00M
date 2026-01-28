@@ -116,7 +116,7 @@ public class AudioManager : MonoBehaviour
     public void PlaySFX(string key)
     {
         // Check if key exist
-        if (!musicDictionary.ContainsKey(key))
+        if (!sfxDictionary.ContainsKey(key))
         {
             Debug.Log("SFX key: " + key + ", does not exist");
             return;
@@ -162,14 +162,24 @@ public class AudioManager : MonoBehaviour
 
     public void LoadVolumeSettings()
     {
+        float masterVol = PlayerPrefs.GetFloat("masterVolume", 1f);
         float musicVol = PlayerPrefs.GetFloat("musicVolume", 1f);
         float sfxVol = PlayerPrefs.GetFloat("sfxVolume", 1f);
 
-        float m = Mathf.Log10(Mathf.Clamp(musicVol, 0.0001f, 1f)) * 20f;
-        float s = Mathf.Log10(Mathf.Clamp(sfxVol, 0.0001f, 1f)) * 20f;
+        float master = Mathf.Log10(Mathf.Clamp(masterVol, 0.0001f, 1f)) * 20f;
+        float music = Mathf.Log10(Mathf.Clamp(musicVol, 0.0001f, 1f)) * 20f;
+        float sfx = Mathf.Log10(Mathf.Clamp(sfxVol, 0.0001f, 1f)) * 20f;
 
-        audioMixer.SetFloat("MusicVolume", m);
-        audioMixer.SetFloat("SFXVolume", s);
+        audioMixer.SetFloat("MasterVolume", master);
+        audioMixer.SetFloat("MusicVolume", music);
+        audioMixer.SetFloat("SFXVolume", sfx);
+    }
+
+    public void SetMasterVolume(float value)
+    {
+        float v = Mathf.Log10(Mathf.Clamp(value, 0.0001f, 1f)) * 20f;
+        audioMixer.SetFloat("MasterVolume", v);
+        PlayerPrefs.SetFloat("masterVolume", value);
     }
 
     public void SetMusicVolume(float value)
