@@ -52,7 +52,9 @@ MonoBehaviour:
   - {fileID: 8300000, guid: c47ddcf901e9ecc43a7870cb5abcfc0b, type: 3}
   - {fileID: 8300000, guid: 64ddb47fa83222a49ba82601fc3c9c33, type: 3}
   musicGroup: {fileID: 1031827088303746642, guid: 4a075130037f2c44aa56de3cb437a393, type: 2}
-  sfxKeyList: []
-  sfxAudioClipList: []
+  sfxKeyList:
+  - buttonPress
+  sfxAudioClipList:
+  - {fileID: 8300000, guid: 81c9041d1a78c504bb9eb239f589b220, type: 3}
   sfxGroup: {fileID: -2322593950700290569, guid: 4a075130037f2c44aa56de3cb437a393, type: 2}
   sfxPoolSize: 10
