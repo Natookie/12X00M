@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0d96817cb8b4de4b97dfb2a36d3c72c, type: 3}
-  m_Name: T_Chair
+  m_Name: T_TV_1
   m_EditorClassIdentifier: Assembly-CSharp::FurnitureTypeCountTask
   taskName: 
   description: 
-  rewardCoins: 50
-  requiredType: 2
-  requiredCount: 2
+  rewardCoins: 470
+  requiredType: 10
+  requiredCount: 1

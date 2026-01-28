@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8740779cc1d84b244b872308166b8812, type: 3}
-  m_Name: Functionality_1
+  m_Name: Charisma_2
   m_EditorClassIdentifier: Assembly-CSharp::StatThresholdTask
   taskName: 
   description: 
-  rewardCoins: 120
-  statType: 2
-  requiredValue: 10
+  rewardCoins: 500
+  statType: 0
+  requiredValue: 30

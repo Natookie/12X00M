@@ -9,11 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8740779cc1d84b244b872308166b8812, type: 3}
-  m_Name: Functionality_1
-  m_EditorClassIdentifier: Assembly-CSharp::StatThresholdTask
+  m_Script: {fileID: 11500000, guid: c0d96817cb8b4de4b97dfb2a36d3c72c, type: 3}
+  m_Name: T_Bookshelf
+  m_EditorClassIdentifier: Assembly-CSharp::FurnitureTypeCountTask
   taskName: 
   description: 
-  rewardCoins: 120
-  statType: 2
-  requiredValue: 10
+  rewardCoins: 220
+  requiredType: 9
+  requiredCount: 1
