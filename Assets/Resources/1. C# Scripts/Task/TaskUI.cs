@@ -25,6 +25,14 @@ public class TaskUI : MonoBehaviour
     [Space(10)]
     [SerializeField] private CanvasGroup refreshFeedback;
 
+    [Header("PARENT CONTAINERS")]
+    [SerializeField] private Transform mainTaskParent;
+    [SerializeField] private Transform extraTaskParent;
+    [SerializeField] private GameObject taskItemPrefab;
+
+    private List<TaskItem> currentMainTaskItems = new List<TaskItem>();
+    private List<TaskItem> currentExtraTaskItems = new List<TaskItem>();
+
     [Header("COLORS")]
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color completedColor = Color.green;
@@ -62,6 +70,7 @@ public class TaskUI : MonoBehaviour
     private float originalEndRoundY;
     private bool isEndRoundAnimating = false;
     private bool isShinePlaying = false;
+    private bool needsInitialSetup = true;
 
     void Start(){
         if(refreshMainBtn != null && refreshMainBtn.transform.childCount > 0) refreshIconMain = refreshMainBtn.transform.GetChild(0).GetComponent<UIBlock2D>();
@@ -93,13 +102,13 @@ public class TaskUI : MonoBehaviour
             endRoundBtn_Container.AddGestureHandler<Gesture.OnUnhover>(EndRoundUnhover);
         }
         
-        if(taskManager != null) taskManager.OnTasksUpdated += UpdateUI;
+        if(taskManager != null) taskManager.OnTasksUpdated += OnTasksUpdatedHandler;
         
         UpdateUI();
     }
 
     void OnDestroy(){
-        if(taskManager != null) taskManager.OnTasksUpdated -= UpdateUI;
+        if(taskManager != null) taskManager.OnTasksUpdated -= OnTasksUpdatedHandler;
         StopAllCoroutines();
     }
 
@@ -113,62 +122,138 @@ public class TaskUI : MonoBehaviour
         }
     }
 
+    void OnTasksUpdatedHandler(){
+        ClearAllTaskItems();
+        needsInitialSetup = true;
+        UpdateUI();
+    }
+
     public void UpdateUI(){
-        UpdateMainTaskDisplay();
-        UpdateExtraTaskDisplay();
+        if(needsInitialSetup){
+            CreateAllTaskItems();
+            needsInitialSetup = false;
+        }else UpdateAllTaskVisuals();
+        
         UpdateButtonStates();
         UpdateCostDisplay();
         UpdateRewardDisplay();
     }
 
-    public void UpdateMainTaskDisplay(){
-        if(mainTaskText == null || taskManager == null) return;
-        
+    void CreateAllTaskItems(){
         List<TaskData> mainTasks = taskManager.GetMainTasks();
-        if(mainTasks.Count == 0){
-            mainTaskText.Text = "No main tasks assigned";
-            mainTaskText.Color = unavailableColor;
-            return;
-        }
-        
-        StringBuilder sb = new StringBuilder();
         foreach(TaskData task in mainTasks){
-            string description = taskManager.GetTaskDescription(task);
-            bool completed = taskManager.IsTaskCompleted(task);
+            GameObject taskObj = Instantiate(taskItemPrefab, mainTaskParent);
+            TaskItem taskItem = taskObj.GetComponent<TaskItem>();
             
-            string colorTag = completed ? "<color=#3ec54b>" : "<color=#3c2f52>";
-            string statusIcon = completed ? "V " : "- ";
-            
-            sb.AppendLine($"{colorTag}{statusIcon}{description}</color>");
+            if(taskItem != null){
+                bool completed = taskManager.IsTaskCompleted(task);
+                int current = GetCurrentProgress(task);
+                int target = GetTargetProgress(task);
+                
+                currentMainTaskItems.Add(taskItem);
+                StartCoroutine(DelayedInitializeTaskItem(taskItem, task, completed, current, target, false));
+            }
         }
-        
-        mainTaskText.Text = sb.ToString();
-    }
-
-    void UpdateExtraTaskDisplay(){
-        if(extraTaskText == null || taskManager == null) return;
         
         List<TaskData> extraTasks = taskManager.GetExtraTasks();
         if(extraTasks.Count == 0){
-            mainTaskText.Text = "No extra tasks assigned";
-            mainTaskText.Color = unavailableColor;
+            extraTaskParent.gameObject.SetActive(false);
             return;
         }
         
-        extraTaskText.gameObject.SetActive(true);
+        extraTaskParent.gameObject.SetActive(true);
         
-        StringBuilder sb = new StringBuilder();
         foreach(TaskData task in extraTasks){
-            string description = taskManager.GetTaskDescription(task);
-            bool completed = taskManager.IsTaskCompleted(task);
+            GameObject taskObj = Instantiate(taskItemPrefab, extraTaskParent);
+            TaskItem taskItem = taskObj.GetComponent<TaskItem>();
             
-            string colorTag = completed ? "<color=#3ec54b>" : "<color=#3c2f52>";
-            string statusIcon = completed ? "V " : "- ";
+            if(taskItem != null){
+                bool completed = taskManager.IsTaskCompleted(task);
+                int current = GetCurrentProgress(task);
+                int target = GetTargetProgress(task);
+                
+                currentExtraTaskItems.Add(taskItem);
+                StartCoroutine(DelayedInitializeTaskItem(taskItem, task, completed, current, target, true));
+            }
+        }
+    }
+
+    void UpdateAllTaskVisuals(){
+        List<TaskData> mainTasks = taskManager.GetMainTasks();
+        for(int i = 0; i < Mathf.Min(currentMainTaskItems.Count, mainTasks.Count); i++){
+            TaskItem taskItem = currentMainTaskItems[i];
+            TaskData taskData = mainTasks[i];
             
-            sb.AppendLine($"{colorTag}{statusIcon}{description}</color>");
+            if(taskData != null && taskItem != null){
+                bool completed = taskManager.IsTaskCompleted(taskData);
+                int current = GetCurrentProgress(taskData);
+                int target = GetTargetProgress(taskData);
+                
+                Debug.Log("UpdateAllTaskVisuals");
+                taskItem.UpdateStatus(completed, current, target, false);
+            }
         }
         
-        extraTaskText.Text = sb.ToString();
+        List<TaskData> extraTasks = taskManager.GetExtraTasks();
+        if(extraTasks.Count == 0){
+            extraTaskParent.gameObject.SetActive(false);
+            return;
+        }
+        
+        extraTaskParent.gameObject.SetActive(true);
+        
+        for(int i = 0; i < Mathf.Min(currentExtraTaskItems.Count, extraTasks.Count); i++){
+            TaskItem taskItem = currentExtraTaskItems[i];
+            TaskData taskData = extraTasks[i];
+            
+            if(taskData != null && taskItem != null){
+                bool completed = taskManager.IsTaskCompleted(taskData);
+                int current = GetCurrentProgress(taskData);
+                int target = GetTargetProgress(taskData);
+                
+                Debug.Log("UpdateAllTaskVisuals");
+                taskItem.UpdateStatus(completed, current, target, true);
+            }
+        }
+    }
+
+    IEnumerator DelayedInitializeTaskItem(TaskItem taskItem, TaskData task, bool isCompleted, int currentProgress, int targetProgress, bool isExtraTask){
+        yield return null;
+        
+        if(taskItem != null && task != null){
+            Debug.Log("Line Initialize");
+            taskItem.Initialize(task, isCompleted, currentProgress, targetProgress, isExtraTask);
+        }
+    }
+
+    void ClearAllTaskItems(){
+        foreach(var item in currentMainTaskItems) if(item != null) Destroy(item.gameObject);
+        currentMainTaskItems.Clear();
+        
+        foreach(var item in currentExtraTaskItems) if(item != null) Destroy(item.gameObject);
+        currentExtraTaskItems.Clear();
+    }
+
+    int GetCurrentProgress(TaskData task){
+        string desc = taskManager.GetTaskDescription(task);
+        int start = desc.IndexOf('[') + 1;
+        int slash = desc.IndexOf('/');
+        if(start > 0 && slash > start){
+            string currentStr = desc.Substring(start, slash - start);
+            if(int.TryParse(currentStr, out int result)) return result;
+        }
+        return 0;
+    }
+    
+    int GetTargetProgress(TaskData task){
+        string desc = taskManager.GetTaskDescription(task);
+        int slash = desc.IndexOf('/');
+        int end = desc.IndexOf(']');
+        if(slash > 0 && end > slash){
+            string targetStr = desc.Substring(slash + 1, end - slash - 1);
+            if(int.TryParse(targetStr, out int result)) return result;
+        }
+        return 0;
     }
 
     string GetFormattedTaskLine(string taskName, string progress, bool completed){

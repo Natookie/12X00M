@@ -5,6 +5,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance {get; private set;}
     public bool isInitialized;
+    public bool isEnded;
     [SerializeField] private InteractableManager im;
 
     void Awake(){
@@ -118,14 +119,20 @@ public class GameManager : MonoBehaviour
     }
 
     public IEnumerator EndGame(){
+        isEnded = true;
         DialogueManager.Instance.SetDialogue(
             DialogueManager.CharacterType.Grandma,
-            "Hmph, this clanker cant' do it's job properly!"
+            "Hmph..~ I knew it."
         );
         yield return new WaitWhile(() => DialogueManager.Instance.IsTypingActive());
         DialogueManager.Instance.SetDialogue(
             DialogueManager.CharacterType.Grandma,
-            "I'm taking you back to Temu"
+            "This clanker can't do it's job properly!"
+        );
+        yield return new WaitWhile(() => DialogueManager.Instance.IsTypingActive());
+        DialogueManager.Instance.SetDialogue(
+            DialogueManager.CharacterType.Grandma,
+            "I'm taking you back to Tokopedia!"
         );
     }
 }

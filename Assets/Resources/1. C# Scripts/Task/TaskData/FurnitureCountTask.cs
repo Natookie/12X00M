@@ -25,6 +25,22 @@ public class FurnitureCountTask : TaskData
         return roomStats.GetFurnitureCount(requiredFurniture) >= currentTarget;
     }
 
+    public override int GetTrustCost(RoomStats roomStats){
+        if(roomStats == null) return 0;
+
+        int trustCost = Mathf.Max(0, highestCountAchieved * 2);
+        trustCost = Mathf.Clamp(trustCost, 0, 40);
+
+        return trustCost;
+    }
+
+    public override void ResetCumulativeProgress(RoomStats roomStats){
+        if(roomStats == null || requiredFurniture == null) return;
+        
+        highestCountAchieved = 0;
+        currentTarget = highestCountAchieved + requiredCount;
+    }
+
     public override string GetDescription(RoomStats roomStats){
         if(requiredFurniture == null) return $"[0/{requiredCount}] Task configuration error";
         string furnitureName = requiredFurniture.FurnitureName;
@@ -32,6 +48,6 @@ public class FurnitureCountTask : TaskData
         if(roomStats == null) return $"[0/{requiredCount}] Place {requiredCount} {furnitureName}(s)";
         int currentCount = roomStats.GetFurnitureCount(requiredFurniture);
 
-        return $"Single: [{currentCount}/{currentTarget}] Need {currentTarget} total {furnitureName}(s) (Round {roundWhenAssigned})";
+        return $"[{currentCount}/{currentTarget}] (Single) Need {currentTarget} total {furnitureName}(s)";
     }
 }

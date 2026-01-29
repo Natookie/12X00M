@@ -36,9 +36,27 @@ public class StatThresholdTask : TaskData
         if(roomStats == null) return $"[0/{requiredValue}] Task configuration error";
         
         int currentValue = GetCurrentStatValue(roomStats);
-        int needed = currentTarget - currentValue;
+        int needed = Mathf.Max(0, currentTarget - currentValue);
         
-        return $"Cumulative: [{currentValue}/{currentTarget}] Need {needed} more {statType} point{(needed != 1 ? "s" : "")} (Started Round {roundWhenAssigned})";
+        return $"[{currentValue}/{currentTarget}] Need {needed} more {statType} point{(needed != 1 ? "s" : "")}";
+    }
+
+    public override int GetTrustCost(RoomStats roomStats){
+        if(roomStats == null) return 0;
+
+        int trustCost = Mathf.Max(0, highestValueAchieved / 5);
+        trustCost = Mathf.Clamp(trustCost, 0, 40);
+
+        return trustCost;
+    }
+
+    public override void ResetCumulativeProgress(RoomStats roomStats){
+        if(roomStats == null);
+        
+        int currentValue = GetCurrentStatValue(roomStats);
+        
+        highestValueAchieved = 0;
+        currentTarget = highestValueAchieved + requiredValue;
     }
 
     private int GetCurrentStatValue(RoomStats roomStats){

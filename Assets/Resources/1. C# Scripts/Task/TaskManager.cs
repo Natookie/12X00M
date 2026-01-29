@@ -23,6 +23,7 @@ public class TaskManager : MonoBehaviour
     private List<TaskData> extraTasks = new List<TaskData>();
 
     public System.Action OnTasksUpdated;
+    public RoomStats RStats => roomStats;
     public static TaskManager Instance {get; private set;}
 
     void Awake(){
@@ -117,10 +118,10 @@ public class TaskManager : MonoBehaviour
             TaskData task = mainTasks[i];
             
             if(IsTaskCompleted(task)){
-                TrustManager.Instance?.AddTrust(1);
+                TrustManager.Instance?.AddTrust(10);
                 completedCount++;
             }else{
-                TrustManager.Instance?.AddTrust(-1);
+                TrustManager.Instance?.AddTrust(-20);
                 failedCount++;
             }
             
@@ -137,7 +138,7 @@ public class TaskManager : MonoBehaviour
         
         AssignRandomTasks();
         
-        Debug.Log($"Round ended: {completedCount} completed (+{completedCount} trust), {failedCount} failed (-{failedCount} trust)");
+        //Debug.Log($"Round ended: {completedCount} completed (+{completedCount} trust), {failedCount} failed (-{failedCount} trust)");
         OnTasksUpdated?.Invoke();
     }
 
