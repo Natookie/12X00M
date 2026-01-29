@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1f6731fd7219d84e9723716fefc1d37, type: 3}
   m_Name: DoubleBed
   m_EditorClassIdentifier: Assembly-CSharp::FurnitureData
-  furnitureName: Bed
+  furnitureName: Double Bed
   furnitureCost: 550
   furnitureSize: {x: 2, y: 3}
   furnitureType: 1
