@@ -19,5 +19,5 @@ MonoBehaviour:
   charismaContribution: 5
   comfortContribution: 50
   functionalityContribution: 10
-  furnitureIcon: {fileID: 21300000, guid: 4d9b5073c7edea445a325b5cb84f0f5d, type: 3}
+  furnitureIcon: {fileID: 21300000, guid: 3a532b4ecd08ea349a36252df6f4874f, type: 3}
   furniturePrefab: {fileID: 965816770031140970, guid: 7649e0ec91cd77446914c531cea0309e, type: 3}
