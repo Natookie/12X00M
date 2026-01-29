@@ -54,7 +54,15 @@ MonoBehaviour:
   musicGroup: {fileID: 1031827088303746642, guid: 4a075130037f2c44aa56de3cb437a393, type: 2}
   sfxKeyList:
   - buttonPress
+  - furniturePlace
+  - furnitureSelect
+  - moneySound
+  - noMoney
   sfxAudioClipList:
   - {fileID: 8300000, guid: 81c9041d1a78c504bb9eb239f589b220, type: 3}
+  - {fileID: 8300000, guid: 380f4afa1364e9b48aa40634a71f0752, type: 3}
+  - {fileID: 8300000, guid: 8e649bac7cd97aa41a83ef094c043360, type: 3}
+  - {fileID: 8300000, guid: d4e0fac116380a94997290ff9ee10192, type: 3}
+  - {fileID: 8300000, guid: a6fcb6f69d201d146801401a56002437, type: 3}
   sfxGroup: {fileID: -2322593950700290569, guid: 4a075130037f2c44aa56de3cb437a393, type: 2}
   sfxPoolSize: 10
