@@ -6,6 +6,9 @@ public class CatalogItem : MonoBehaviour
 {
     [Header("DATA")]
     public FurnitureData Data;
+    [Header("AUDIO SETTINGS")]
+    [SerializeField] private string catalougeCanPickSFXKey = "furnitureSelect";
+    [SerializeField] private string catalougeCannotPickSFXKey = "noMoney";
 
     private CatalogPreview preview;
     private UIBlock root;
@@ -22,6 +25,12 @@ public class CatalogItem : MonoBehaviour
         if(MoneyManager.Instance.CanAfford(Data.FurnitureCost)){
             BuildSystem.Instance.SetFurnitureData(Data);
             //OpenCatalogButton.Instance.ActivateCatalogPanel(false);
+
+            AudioManager.Instance.PlaySFX(catalougeCanPickSFXKey);
+        }
+        else
+        {
+            AudioManager.Instance.PlaySFX(catalougeCannotPickSFXKey);
         }
     }
     void OnHover(Gesture.OnHover evt){

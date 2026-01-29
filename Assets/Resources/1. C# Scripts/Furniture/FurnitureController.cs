@@ -19,6 +19,9 @@ public class FurnitureController : MonoBehaviour
     [Header("SELECTION SETTINGS")]
     [SerializeField] private Color selectedColor = Color.red;
     [SerializeField] private Color hoverColor = Color.yellow;
+
+    [Header("AUDIO SETTINGS")]
+    [SerializeField] private string furnitureSpawnSFXKey = "furniturePlace";
     
     private bool isSelected = false;
     private Color originalColor;
@@ -56,6 +59,8 @@ public class FurnitureController : MonoBehaviour
     }
     
     IEnumerator SpawnAnimationCoroutine(){
+        AudioManager.Instance.PlaySFX(furnitureSpawnSFXKey);
+
         Vector3 startPos = originalPosition;
         startPos.y += spawnHeightOffset;
         transform.position = startPos;
