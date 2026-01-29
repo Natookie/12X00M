@@ -600,7 +600,7 @@ MonoBehaviour:
   visuals:
     Color: {r: 0.8862746, g: 0.8862746, b: 0.8862745, a: 1}
     CornerRadius:
-      Raw: 16
+      Raw: 0
       Type: 0
     RadialFill:
       Center:
