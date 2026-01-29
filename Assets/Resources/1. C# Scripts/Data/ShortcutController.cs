@@ -23,9 +23,9 @@ public class ShortcutController : MonoBehaviour
         if(!GameManager.Instance.isInitialized) return;
 
         //Open Inventory
-        if(Keyboard.current.digit1Key.wasPressedThisFrame) informationPanel.OnButtonClicked(0);
-        else if(Keyboard.current.digit2Key.wasPressedThisFrame) informationPanel.OnButtonClicked(1);
-        else if(Keyboard.current.digit3Key.wasPressedThisFrame) informationPanel.OnButtonClicked(2);
+        if(Keyboard.current.digit1Key.wasPressedThisFrame) informationPanel.OnButtonClicked(0, true);
+        else if(Keyboard.current.digit2Key.wasPressedThisFrame) informationPanel.OnButtonClicked(1, true);
+        else if(Keyboard.current.digit3Key.wasPressedThisFrame) informationPanel.OnButtonClicked(2, true);
 
         //Debug: Add money
         if(Keyboard.current.leftCtrlKey.isPressed && Keyboard.current.mKey.wasPressedThisFrame) MoneyManager.Instance.AddMoney(200);

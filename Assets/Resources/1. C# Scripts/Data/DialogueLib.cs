@@ -7,9 +7,11 @@ public static class DialogueLib
         {
             "Idle", new List<string>()
             {
-                "Back in my days, i were involved in new rezime",
-                "Nice weather today.",
-                "What's up sybau?"
+                "A little advice for you, if you leave more open space, I might tip you extra.",
+                "Ouchie! My back hurts. Hurry up and place that furniture!",
+                "Back in the day, my husband used to handle this sort of thing.",
+                "Time is money! And right now, you're wasting my money.",
+                "Is the gravity too strong today? Why is nothing moving?"
             }
         },
         {
@@ -17,7 +19,9 @@ public static class DialogueLib
             {
                 "I'm angry!",
                 "This is unacceptable!",
-                "How dare you!"
+                "How dare you!",
+                "Why can't you do it right!",
+                "Disappointing. Truly disappointing."
             }
         }
     };

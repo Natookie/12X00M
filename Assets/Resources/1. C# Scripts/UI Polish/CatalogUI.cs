@@ -35,6 +35,9 @@ public class CatalogUI : MonoBehaviour
     private Color32 resetCurrentColor;
     private Coroutine resetAnimationRoutine;
 
+    [Header("AUDIO SETTINGS")]
+    [SerializeField] private string filterPickedSFXKey = "buttonPress";
+
     private FilterButton selectedUpperFilter;
     private SortButton selectedBottomFilter;
     private Coroutine animationRoutine;
@@ -161,6 +164,8 @@ public class CatalogUI : MonoBehaviour
         charismaFilter.block.transform.localPosition = charismaFilter.originalPosition;
         
         catalogEditor.SortByCharismaDescending();
+
+        AudioManager.Instance.PlaySFX(filterPickedSFXKey);
     }
     
     void CharismaHover(Gesture.OnHover evt){
@@ -186,6 +191,8 @@ public class CatalogUI : MonoBehaviour
         comfortFilter.block.transform.localPosition = comfortFilter.originalPosition;
         
         catalogEditor.SortByComfortDescending();
+
+        AudioManager.Instance.PlaySFX(filterPickedSFXKey);
     }
     
     void ComfortHover(Gesture.OnHover evt){
@@ -211,6 +218,8 @@ public class CatalogUI : MonoBehaviour
         functionalityFilter.block.transform.localPosition = functionalityFilter.originalPosition;
         
         catalogEditor.SortByFunctionalityDescending();
+
+        AudioManager.Instance.PlaySFX(filterPickedSFXKey);
     }
     
     void FunctionalityHover(Gesture.OnHover evt){
@@ -241,6 +250,8 @@ public class CatalogUI : MonoBehaviour
         UpdateArrow(priceFilter);
         
         catalogEditor.FilterItems("price", priceFilter.isAscending);
+
+        AudioManager.Instance.PlaySFX(filterPickedSFXKey);
     }
     
     void PriceHover(Gesture.OnHover evt){
@@ -269,6 +280,8 @@ public class CatalogUI : MonoBehaviour
         UpdateArrow(nameFilter);
         
         catalogEditor.FilterItems("name", nameFilter.isAscending);
+
+        AudioManager.Instance.PlaySFX(filterPickedSFXKey);
     }
     
     void NameHover(Gesture.OnHover evt){
@@ -297,6 +310,8 @@ public class CatalogUI : MonoBehaviour
         UpdateArrow(overallFilter);
         
         catalogEditor.FilterItems("overall", overallFilter.isAscending);
+
+        AudioManager.Instance.PlaySFX(filterPickedSFXKey);
     }
     
     void OverallHover(Gesture.OnHover evt){

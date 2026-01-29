@@ -29,6 +29,9 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private Color32 skipHoverColor;
     [SerializeField] private Color32 skipUnhoverColor;
 
+    [Header("AUDIO SETTINGS")]
+    [SerializeField] private string skipPressedSFXKey = "buttonPress";
+
     public ItemView dialogueItemVisual;
     private DialogueItemVisual visual;
 
@@ -181,6 +184,8 @@ public class DialogueManager : MonoBehaviour
         if(skipButton == null) return;
         SkipTyping();
         GameManager.Instance.SetInitialized();
+
+        AudioManager.Instance.PlaySFX(skipPressedSFXKey);
     }
     void skipHover(Gesture.OnHover evt) => StartCoroutine(LerpSkipButton(skipHoverColor, 1.1f));
     void skipUnhover(Gesture.OnUnhover evt) => StartCoroutine(LerpSkipButton(skipUnhoverColor, 1f));

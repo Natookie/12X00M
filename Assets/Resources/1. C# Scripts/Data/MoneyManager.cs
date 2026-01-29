@@ -10,6 +10,8 @@ public class MoneyManager : MonoBehaviour
 
     [SerializeField] private MoneyUI moneyUI;
 
+    [SerializeField] private string moneySFXKey = "moneySound";
+
     public int Money => currentMoney;
 
     void Awake(){
@@ -21,6 +23,8 @@ public class MoneyManager : MonoBehaviour
     }
 
     public void AddMoney(int value){
+        if(value > 0) AudioManager.Instance.PlaySFX(moneySFXKey);
+
         currentMoney += value;
         currentMoney = Mathf.Max(0, currentMoney);
 

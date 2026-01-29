@@ -12,6 +12,9 @@ public class InformationPanelUI : MonoBehaviour
     [SerializeField] private Color32 selectedColor;
     [SerializeField] private float colorLerpSpeed = 10f;
 
+    [Header("AUDIO")]
+    [SerializeField] private string panelSwipeSFXKey = "panelSwipe";
+
     private int currentSelectedIndex = -1;
     private Coroutine colorLerpCoroutine;
     private Dictionary<UIBlock, SelectionButton> buttonToSelectionMap = new Dictionary<UIBlock, SelectionButton>();
@@ -58,7 +61,7 @@ public class InformationPanelUI : MonoBehaviour
     void AddGestureHandlers(UIBlock2D button, int index){
         button.AddGestureHandler<Gesture.OnHover>(evt => OnButtonHover(button));
         button.AddGestureHandler<Gesture.OnUnhover>(evt => OnButtonUnhover(button));
-        button.AddGestureHandler<Gesture.OnClick>(evt => OnButtonClicked(index));
+        button.AddGestureHandler<Gesture.OnClick>(evt => OnButtonClicked(index, true));
     }
     
     void OnButtonHover(UIBlock button){
@@ -75,7 +78,7 @@ public class InformationPanelUI : MonoBehaviour
         targetColors[selectionButton] = unhoverColor;
     }
     
-    public void OnButtonClicked(int buttonIndex){
+    public void OnButtonClicked(int buttonIndex, bool playSFX=false){
         if(buttonIndex < 0 || buttonIndex >= selectionButtons.Length) return;
         
         var clickedButton = selectionButtons[buttonIndex];
@@ -84,6 +87,8 @@ public class InformationPanelUI : MonoBehaviour
         currentSelectedIndex = buttonIndex;
         UpdatePanels();
         UpdateTargetColors();
+
+        if(playSFX) AudioManager.Instance.PlaySFX(panelSwipeSFXKey);
     }
     
     bool IsButtonSelected(SelectionButton selectionButton){

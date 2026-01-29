@@ -61,6 +61,9 @@ public class TaskUI : MonoBehaviour
     [SerializeField] private RoundManager roundManager;
     [SerializeField] private GridHighlight gridHighlight;
 
+    [Header("AUDIO SETTINGS")]
+    [SerializeField] private string endRoundBtnPressedSFXKey = "buttonPress";
+
     private UIBlock2D refreshIconMain;
     private UIBlock2D refreshIconExtra;
     private Coroutine endRoundHoverCoroutine;
@@ -339,6 +342,8 @@ public class TaskUI : MonoBehaviour
         }
         
         StartCoroutine(PopAnimation());
+
+        AudioManager.Instance.PlaySFX(endRoundBtnPressedSFXKey);
         
         if(taskManager != null) taskManager.EvaluateAllTasksAtRoundEnd();
         if(roundManager != null) roundManager.CompleteRound();
