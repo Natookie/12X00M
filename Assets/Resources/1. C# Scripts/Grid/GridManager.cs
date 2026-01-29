@@ -270,6 +270,7 @@ public class GridManager : MonoBehaviour
     void DetectCursor(){
         if(isAnimating || isBeingRotated || !enableHover) return;
         if(gridHighlight.IsAnimating) return;
+        if(GameManager.Instance.isEnded) return;
         Vector2 mousePosition = Mouse.current.position.ReadValue();
         
         Ray ray = Camera.main.ScreenPointToRay(mousePosition);

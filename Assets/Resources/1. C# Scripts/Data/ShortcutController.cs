@@ -15,6 +15,8 @@ public class ShortcutController : MonoBehaviour
     [SerializeField] private InformationPanelUI informationPanel;
 
     void Update(){
+        if(GameManager.Instance.isEnded) return;
+
         //Skip dialogue
         if(Keyboard.current.nKey.wasPressedThisFrame){
             DialogueManager.Instance.SkipTyping();

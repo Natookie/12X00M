@@ -21,7 +21,7 @@ public class TrustManager : MonoBehaviour
     }
 
     void Update(){
-        if(currentTrust <= 0) GameManager.Instance?.EndGame();
+        if(currentTrust <= 0 && !GameManager.Instance.isEnded) GameManager.Instance.StartCoroutine(GameManager.Instance.EndGame());
     }
 
     public void AddTrust(float value){

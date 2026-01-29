@@ -222,7 +222,6 @@ public class TaskUI : MonoBehaviour
         yield return null;
         
         if(taskItem != null && task != null){
-            Debug.Log("Line Initialize");
             taskItem.Initialize(task, isCompleted, currentProgress, targetProgress, isExtraTask);
         }
     }

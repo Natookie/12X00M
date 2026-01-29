@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public bool isInitialized;
     public bool isEnded;
     [SerializeField] private InteractableManager im;
+    [SerializeField] private GameOver gameOver;
 
     void Awake(){
         if(Instance == null) Instance = this;
@@ -116,10 +117,14 @@ public class GameManager : MonoBehaviour
         isInitialized = true;
         InformationPanelUI.Instance.OnButtonClicked(2);
         im.EnableAllInteractables();
+
+        DialogueManager.Instance.ResetSkip();
     }
 
     public IEnumerator EndGame(){
         isEnded = true;
+        gameOver.PlayVignette();
+
         DialogueManager.Instance.SetDialogue(
             DialogueManager.CharacterType.Grandma,
             "Hmph..~ I knew it."
@@ -127,12 +132,18 @@ public class GameManager : MonoBehaviour
         yield return new WaitWhile(() => DialogueManager.Instance.IsTypingActive());
         DialogueManager.Instance.SetDialogue(
             DialogueManager.CharacterType.Grandma,
-            "This clanker can't do it's job properly!"
+            "This sussy clanker can't do it's job properly!"
         );
         yield return new WaitWhile(() => DialogueManager.Instance.IsTypingActive());
         DialogueManager.Instance.SetDialogue(
             DialogueManager.CharacterType.Grandma,
-            "I'm taking you back to Tokopedia!"
+            "I'm taking you back to Tokopedia! ~~\n<color=#b22741>C'MERE BOYY!!</color>"
         );
+        DialogueManager.Instance.SetDialogue(
+            DialogueManager.CharacterType.Player,
+            "Please yiyi i need this"
+        );
+
+        gameOver.ShowResult();
     }
 }

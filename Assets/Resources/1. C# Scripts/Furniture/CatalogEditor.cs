@@ -7,6 +7,10 @@ public class CatalogEditor : MonoBehaviour
 {
     private List<Transform> originalItemOrder = new List<Transform>();
     
+    void start(){
+        StoreOriginalOrder();
+    }
+
     #region ASSIGNING ITEM
     [ContextMenu("Assign Catalog Items")]
     public void AssignItems(){

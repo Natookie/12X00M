@@ -62,6 +62,7 @@ public class DialogueManager : MonoBehaviour
     void Update(){
         if(!GameManager.Instance.isInitialized) return;
         if(skipButton != null) skipButton.transform.position = new Vector3(-1000, -1000, -1000);
+        if(GameManager.Instance.isEnded) return;
 
         if(!IsTypingActive() && Time.time - lastIdleDialogueTime > idleDialogueCooldown){
             string randomIdleLine = DialogueLib.GetRandomDialogue("Idle");
