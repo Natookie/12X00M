@@ -1,6 +1,8 @@
 using UnityEngine;
 using Nova;
 using System.Collections;
+using NovaSamples.UIControls;
+using UnityEngine.SceneManagement;
 
 public class GameOver : MonoBehaviour
 {   
@@ -18,7 +20,9 @@ public class GameOver : MonoBehaviour
     [SerializeField] private TextBlock roundText;
 
     [Header("BUTTON")]
-    [SerializeField] private UIBlock2D rebornButton;
+    [SerializeField] private UIBlock2D restartButton;
+    [SerializeField] private UIBlock2D menuButton;
+    [SerializeField] private UIBlock2D quitButton;
     [SerializeField] private Color32 rebornHover;
     [SerializeField] private Color32 rebornUnhover;
     [Space(10)]
@@ -30,8 +34,10 @@ public class GameOver : MonoBehaviour
     [SerializeField] private float panelPopScale = 1.1f;
     [SerializeField] private AnimationCurve panelPopCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-    private Vector3 rebornButtonOriginalScale;
-    private Coroutine rebornHoverCoroutine;
+    private Vector3 buttonOriginalScale;
+    private Coroutine restartButtonHoverCoroutine;
+    private Coroutine menuButtonHoverCoroutine;
+    private Coroutine quitButtonHoverCoroutine;
     private Coroutine panelAnimationCoroutine;
     private bool isPanelAnimating = false;
 
@@ -48,11 +54,25 @@ public class GameOver : MonoBehaviour
             }
         }
 
-        if(rebornButton != null){
-            rebornButtonOriginalScale = rebornButton.transform.localScale;
-            rebornButton.AddGestureHandler<Gesture.OnPress>(RebornClick);
-            rebornButton.AddGestureHandler<Gesture.OnHover>(RebornHover);
-            rebornButton.AddGestureHandler<Gesture.OnUnhover>(RebornUnhover);
+        if(restartButton != null){
+            buttonOriginalScale = restartButton.transform.localScale;
+            restartButton.AddGestureHandler<Gesture.OnPress>(RestartClick);
+            restartButton.AddGestureHandler<Gesture.OnHover>(RestartHover);
+            restartButton.AddGestureHandler<Gesture.OnUnhover>(RestartUnhover);
+        }
+
+        if(menuButton != null){
+            buttonOriginalScale = menuButton.transform.localScale;
+            menuButton.AddGestureHandler<Gesture.OnPress>(MenuClick);
+            menuButton.AddGestureHandler<Gesture.OnHover>(MenuHover);
+            menuButton.AddGestureHandler<Gesture.OnUnhover>(MenuUnhover);
+        }
+
+        if(quitButton != null){
+            buttonOriginalScale = quitButton.transform.localScale;
+            quitButton.AddGestureHandler<Gesture.OnPress>(QuitClick);
+            quitButton.AddGestureHandler<Gesture.OnHover>(QuitHover);
+            quitButton.AddGestureHandler<Gesture.OnUnhover>(QuitUnhover);
         }
         
         resultPanel.SetActive(false);
@@ -152,10 +172,60 @@ public class GameOver : MonoBehaviour
         panelAnimationCoroutine = null;
     }
 
-    void RebornClick(Gesture.OnPress evt){
+    void RestartClick(Gesture.OnPress evt){
+        SceneManager.LoadScene("Main Scene");
+    }
+
+    void RestartHover(Gesture.OnHover evt){
+        if(restartButton == null || isPanelAnimating) return;
+        
+        if(restartButtonHoverCoroutine != null) StopCoroutine(restartButtonHoverCoroutine);
+        restartButtonHoverCoroutine = StartCoroutine(ButtonHoverAnimation(restartButton, true));
+    }
+
+    void RestartUnhover(Gesture.OnUnhover evt){
+        if(restartButton == null) return;
+        
+        if(restartButtonHoverCoroutine != null) StopCoroutine(restartButtonHoverCoroutine);
+        restartButtonHoverCoroutine = StartCoroutine(ButtonHoverAnimation(restartButton, false));
+    }
+
+    void MenuClick(Gesture.OnPress evt){
+        SceneManager.LoadScene("Menu Scene");
+    }
+
+    void MenuHover(Gesture.OnHover evt){
+        if(menuButton == null || isPanelAnimating) return;
+        
+        if(menuButtonHoverCoroutine != null) StopCoroutine(menuButtonHoverCoroutine);
+        menuButtonHoverCoroutine = StartCoroutine(ButtonHoverAnimation(menuButton, true));
+    }
+
+    void MenuUnhover(Gesture.OnUnhover evt){
+        if(menuButton == null) return;
+        
+        if(menuButtonHoverCoroutine != null) StopCoroutine(menuButtonHoverCoroutine);
+        menuButtonHoverCoroutine = StartCoroutine(ButtonHoverAnimation(menuButton, false));
+    }
+
+    void QuitClick(Gesture.OnPress evt){
         StartCoroutine(SelfDestruct());
         //GameManager.Instance.StartCoroutine(GameManager.Instance.StartGame());
         //ResetGameOver();
+    }
+
+    void QuitHover(Gesture.OnHover evt){
+        if(quitButton == null || isPanelAnimating) return;
+        
+        if(quitButtonHoverCoroutine != null) StopCoroutine(quitButtonHoverCoroutine);
+        quitButtonHoverCoroutine = StartCoroutine(ButtonHoverAnimation(quitButton, true));
+    }
+
+    void QuitUnhover(Gesture.OnUnhover evt){
+        if(quitButton == null) return;
+        
+        if(quitButtonHoverCoroutine != null) StopCoroutine(quitButtonHoverCoroutine);
+        quitButtonHoverCoroutine = StartCoroutine(ButtonHoverAnimation(quitButton, false));
     }
 
     IEnumerator SelfDestruct(){
@@ -171,27 +241,14 @@ public class GameOver : MonoBehaviour
         #endif
     }
     
-    void RebornHover(Gesture.OnHover evt){
-        if(rebornButton == null || isPanelAnimating) return;
-        
-        if(rebornHoverCoroutine != null) StopCoroutine(rebornHoverCoroutine);
-        rebornHoverCoroutine = StartCoroutine(RebornHoverAnimation(true));
-    }
 
-    void RebornUnhover(Gesture.OnUnhover evt){
-        if(rebornButton == null) return;
+    IEnumerator ButtonHoverAnimation(UIBlock2D button, bool hovering){
+        if(button == null) yield break;
         
-        if(rebornHoverCoroutine != null) StopCoroutine(rebornHoverCoroutine);
-        rebornHoverCoroutine = StartCoroutine(RebornHoverAnimation(false));
-    }
-
-    IEnumerator RebornHoverAnimation(bool hovering){
-        if(rebornButton == null) yield break;
+        Vector3 startScale = button.transform.localScale;
+        Vector3 targetScale = hovering ? buttonOriginalScale * buttonHoverScale : buttonOriginalScale;
         
-        Vector3 startScale = rebornButton.transform.localScale;
-        Vector3 targetScale = hovering ? rebornButtonOriginalScale * buttonHoverScale : rebornButtonOriginalScale;
-        
-        Color32 startColor = rebornButton.Color;
+        Color32 startColor = button.Color;
         Color32 targetColor = hovering ? rebornHover : rebornUnhover;
         
         float elapsed = 0f;
@@ -202,18 +259,20 @@ public class GameOver : MonoBehaviour
             
             float easedT = Mathf.SmoothStep(0f, 1f, t);
             Vector3 newScale = Vector3.Lerp(startScale, targetScale, easedT);
-            rebornButton.transform.localScale = newScale;
+            button.transform.localScale = newScale;
             
             Color32 newColor = Color32.Lerp(startColor, targetColor, easedT);
-            rebornButton.Color = newColor;
+            button.Color = newColor;
             
             yield return null;
         }
         
-        rebornButton.transform.localScale = targetScale;
-        rebornButton.Color = targetColor;
+        button.transform.localScale = targetScale;
+        button.Color = targetColor;
         
-        rebornHoverCoroutine = null;
+        if(button == restartButton) restartButtonHoverCoroutine = null;
+        if(button == restartButton) menuButtonHoverCoroutine = null;
+        if(button == restartButton) quitButtonHoverCoroutine = null;
     }
 
     public void ResetGameOver(){
@@ -233,16 +292,40 @@ public class GameOver : MonoBehaviour
             resultPanel.SetActive(false);
             resultPanel.transform.localScale = Vector3.one;
         }
-        
-        if(rebornButton != null){
-            rebornButton.transform.localScale = rebornButtonOriginalScale;
-            rebornButton.Color = rebornUnhover;
+
+        // Restart Button
+        if(restartButton != null){
+            restartButton.transform.localScale = buttonOriginalScale;
+            restartButton.Color = rebornUnhover;
         }
         
-        if(rebornHoverCoroutine != null){
-            StopCoroutine(rebornHoverCoroutine);
-            rebornHoverCoroutine = null;
+        if(restartButtonHoverCoroutine != null){
+            StopCoroutine(restartButtonHoverCoroutine);
+            restartButtonHoverCoroutine = null;
         }
+
+        // Menu button
+        if(menuButton != null){
+            menuButton.transform.localScale = buttonOriginalScale;
+            menuButton.Color = rebornUnhover;
+        }
+        
+        if(menuButtonHoverCoroutine != null){
+            StopCoroutine(menuButtonHoverCoroutine);
+            menuButtonHoverCoroutine = null;
+        }
+
+        // Quit button
+        if(quitButton != null){
+            quitButton.transform.localScale = buttonOriginalScale;
+            quitButton.Color = rebornUnhover;
+        }
+        
+        if(quitButtonHoverCoroutine != null){
+            StopCoroutine(quitButtonHoverCoroutine);
+            quitButtonHoverCoroutine = null;
+        }
+        
         
         if(panelAnimationCoroutine != null){
             StopCoroutine(panelAnimationCoroutine);

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5452830429870461287}
   - component: {fileID: 7004549081209815872}
   m_Layer: 0
-  m_Name: fp_Bed
+  m_Name: fp_DoubleBed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

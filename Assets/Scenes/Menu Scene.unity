@@ -1473,7 +1473,7 @@ Transform:
   m_GameObject: {fileID: 206162967}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 320, z: 0}
+  m_LocalPosition: {x: 0, y: 192.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1511,7 +1511,7 @@ MonoBehaviour:
         Raw: 0
         Type: 0
       Y:
-        Raw: 640
+        Raw: 385
         Type: 0
       Z:
         Raw: 0
@@ -3495,8 +3495,8 @@ Transform:
   m_Children:
   - {fileID: 872257845}
   - {fileID: 795413994}
-  - {fileID: 1225891177}
   - {fileID: 1400201203}
+  - {fileID: 1225891177}
   m_Father: {fileID: 585064525}
   m_LocalEulerAnglesHint: {x: 35.264, y: 0, z: 0}
 --- !u!114 &511920607
@@ -7344,10 +7344,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 2749703328615075789, guid: 22d6c445b9b79fe4caf6f07cd194fab9, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 22d6c445b9b79fe4caf6f07cd194fab9, type: 3}
 --- !u!4 &1000922682 stripped
 Transform:
@@ -7525,7 +7522,7 @@ Transform:
   m_GameObject: {fileID: 1080248499}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 315, y: -10, z: 0}
+  m_LocalPosition: {x: 315, y: -137.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -7563,7 +7560,7 @@ MonoBehaviour:
         Raw: 0
         Type: 0
       Y:
-        Raw: 390
+        Raw: 135
         Type: 0
       Z:
         Raw: 0
@@ -7932,7 +7929,7 @@ Transform:
   m_GameObject: {fileID: 1225891176}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 324, y: -0.45941162, z: 0}
+  m_LocalPosition: {x: 324, y: 127.04059, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -7961,7 +7958,7 @@ MonoBehaviour:
         Raw: 1222
         Type: 0
       Y:
-        Raw: 1032
+        Raw: 777
         Type: 0
       Z:
         Raw: 0
@@ -8437,7 +8434,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6478502746955835961, guid: 22d6c445b9b79fe4caf6f07cd194fab9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -470
+      value: -342.5
       objectReference: {fileID: 0}
     - target: {fileID: 6478502746955835961, guid: 22d6c445b9b79fe4caf6f07cd194fab9, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8481,7 +8478,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7252794220261726053, guid: 22d6c445b9b79fe4caf6f07cd194fab9, type: 3}
       propertyPath: layout.Margin.Top.Raw
-      value: 280
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 7252794220261726053, guid: 22d6c445b9b79fe4caf6f07cd194fab9, type: 3}
       propertyPath: layout.Position.Y.Raw
@@ -8672,7 +8669,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1400201203
 Transform:
   m_ObjectHideFlags: 0

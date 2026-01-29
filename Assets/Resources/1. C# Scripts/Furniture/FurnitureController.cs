@@ -4,6 +4,8 @@ using System.Collections;
 
 public class FurnitureController : MonoBehaviour
 {
+    const float FURNITURE_SELL_MOFIFIER = 0.8f;
+
     [Header("REFERENCES")]
     [SerializeField] private FurnitureData furnitureData;
     [SerializeField] private Renderer furnitureRenderer;
@@ -177,7 +179,7 @@ public class FurnitureController : MonoBehaviour
     
     int CalculateSellPrice(){
         if(furnitureData == null) return 0;
-        return Mathf.RoundToInt(furnitureData.FurnitureCost * 0.4f);
+        return Mathf.RoundToInt(furnitureData.FurnitureCost * FURNITURE_SELL_MOFIFIER);
     }
     
     public void SetFurnitureData(FurnitureData data) => furnitureData = data;

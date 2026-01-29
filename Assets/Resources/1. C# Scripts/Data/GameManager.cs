@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    const int STARTING_MONEY = 1500;
+
     public static GameManager Instance {get; private set;}
     public bool isInitialized;
     public bool isEnded;
@@ -94,7 +96,7 @@ public class GameManager : MonoBehaviour
             DialogueManager.CharacterType.Grandma,
             "You do you. Here, take this man's previous budget, and buy me some furniture."
         );
-        MoneyManager.Instance.AddMoney(1000);
+        MoneyManager.Instance.AddMoney(STARTING_MONEY);
         MoneyUI.Instance.UpdateMoneyDisplay(MoneyManager.Instance.Money);
 
         yield return new WaitWhile(() => DialogueManager.Instance.IsTypingActive());

@@ -14,4 +14,5 @@ public enum FurnitureType
     Bookshelf,
     TV,
     Wardrobe,
+    Bin,
 }

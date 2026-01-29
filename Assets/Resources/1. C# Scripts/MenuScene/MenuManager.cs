@@ -52,7 +52,11 @@ public class MenuManager : MonoBehaviour
     public void OnQuitGame()
     {
         Debug.Log("Quit game");
-        Application.Quit();
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
     }
 
     private IEnumerator PlayMenuMusic()

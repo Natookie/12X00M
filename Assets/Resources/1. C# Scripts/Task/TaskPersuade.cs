@@ -13,6 +13,8 @@ public class TaskPersuade : MonoBehaviour
     [Space(10)]
     [SerializeField] private CanvasGroup persuadeFeedback;
     [SerializeField] private TextMeshProUGUI feedbackTextTMP;
+    [Header("AUDIO SETTINGS")]
+    [SerializeField] private string cannotPersuadeSFXKey = "noMoney";
 
     void Awake(){
         if(Instance == null) Instance = this;
@@ -26,11 +28,20 @@ public class TaskPersuade : MonoBehaviour
         if(currentTask == null || taskManager == null || trustManager == null) return;
         
         int trustCost = currentTask.GetTrustCost(taskManager.RStats);
-        currentTask.ResetCumulativeProgress(taskManager.RStats);
         if(trustCost > 0){
-            trustManager.AddTrust(-trustCost);
-            taskManager.OnTasksUpdated?.Invoke();
-            Debug.Log($"Lost {trustCost} trust.");
+            if(trustManager.Trust >= trustCost)
+            {
+                currentTask.ResetCumulativeProgress(taskManager.RStats);
+                trustManager.AddTrust(-trustCost);
+                taskManager.OnTasksUpdated?.Invoke();
+                Debug.Log($"Lost {trustCost} trust.");
+            }
+            else
+            {
+                AudioManager.Instance.PlaySFX(cannotPersuadeSFXKey);
+                Debug.Log("Insufficient trust.");
+                return;
+            }
         }else Debug.Log("No progress to reset");
     }
 
