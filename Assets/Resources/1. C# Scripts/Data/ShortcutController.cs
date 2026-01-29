@@ -30,6 +30,8 @@ public class ShortcutController : MonoBehaviour
         //Debug: Add money
         if(Keyboard.current.leftCtrlKey.isPressed && Keyboard.current.mKey.wasPressedThisFrame) MoneyManager.Instance.AddMoney(200);
 
+        //Debug: Add trust
+        if(Keyboard.current.leftCtrlKey.isPressed && Keyboard.current.tKey.wasPressedThisFrame) TrustManager.Instance.AddTrust(100);
 
         //Get Inventory selection
     }
