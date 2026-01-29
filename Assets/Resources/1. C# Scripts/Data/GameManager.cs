@@ -139,6 +139,7 @@ public class GameManager : MonoBehaviour
             DialogueManager.CharacterType.Grandma,
             "I'm taking you back to Tokopedia! ~~\n<color=#b22741>C'MERE BOYY!!</color>"
         );
+        yield return new WaitWhile(() => DialogueManager.Instance.IsTypingActive());
         DialogueManager.Instance.SetDialogue(
             DialogueManager.CharacterType.Player,
             "Please yiyi i need this"
