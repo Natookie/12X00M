@@ -29,6 +29,8 @@ public class CatalogEditor : MonoBehaviour
     
     void UpdateCatalogItemUI(CatalogItem catalogItem){
         FurnitureData data = catalogItem.Data;
+
+        if(!string.IsNullOrEmpty(data.FurnitureName)) catalogItem.gameObject.name = data.FurnitureName;
         
         Transform itemTransform = catalogItem.transform;
         if(itemTransform.childCount > 0){

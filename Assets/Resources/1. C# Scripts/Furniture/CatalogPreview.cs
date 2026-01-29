@@ -41,6 +41,8 @@ public class CatalogPreview : MonoBehaviour
     // void CatalogUnhover(Gesture.OnUnhover evt){}
 
     public void ShowPreview(Vector3 itemPos, FurnitureData data, bool isAffordable){
+        if(BuildSystem.Instance.IsInBuildMode) return;
+
         visual.furnitureIcon.SetImage(data.furnitureIcon);
         visual.furnitureName.Text = data.furnitureName; 
         visual.furniturePrice.Text = $"<color={(isAffordable ? greenColor : redColor)}>{data.furnitureCost}</color>";

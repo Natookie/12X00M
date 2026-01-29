@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FurnitureData
   furnitureName: Locker
   furnitureCost: 0
-  furnitureSize: {x: 1, y: 1}
+  furnitureSize: {x: 3, y: 3}
   furnitureType: 2
   charismaContribution: 5
   comfortContribution: 0

@@ -42,6 +42,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private bool showGizmos = true;
     
     private Dictionary<Vector2Int, GridTileData> gridTiles = new Dictionary<Vector2Int, GridTileData>();
+    private List<GameObject> currentlyHighlightedTiles = new List<GameObject>();
     private GameObject lastHoveredTile;
     
     [Header("INTERACTION SETTINGS")]
@@ -149,7 +150,7 @@ public class GridManager : MonoBehaviour
                     tileInfo.originalColor = tileColor;
                     tileInfo.isDarkTile = colorIndex == 1;
                     tileInfo.tileRenderer = tileRenderer;
-                }
+                }else Debug.LogWarning("Hidup J");
                 
                 if(tile.GetComponent<Collider>() == null) tile.AddComponent<BoxCollider>();
                 
@@ -269,10 +270,6 @@ public class GridManager : MonoBehaviour
     void DetectCursor(){
         if(isAnimating || isBeingRotated || !enableHover) return;
         if(gridHighlight.IsAnimating) return;
-        if(OpenCatalogButton.Instance.IsPanelActive()){
-            ResetTileColor(lastHoveredTile);
-            return;
-        }
         Vector2 mousePosition = Mouse.current.position.ReadValue();
         
         Ray ray = Camera.main.ScreenPointToRay(mousePosition);
@@ -280,19 +277,15 @@ public class GridManager : MonoBehaviour
         
         if(Physics.Raycast(ray, out hit, Mathf.Infinity, gridLayerMask)){
             GameObject hitTile = hit.collider.gameObject;
-            
-            if(lastHoveredTile != null && lastHoveredTile != hitTile){
-                ResetTileColor(lastHoveredTile);
-            }
+
+            if(lastHoveredTile != null && lastHoveredTile != hitTile) ResetTileColor(lastHoveredTile);
             
             if(hitTile != lastHoveredTile){
                 lastHoveredTile = hitTile;
                 SetTileInteractionColor(hitTile, hoverColor);
             }
             
-            if(Mouse.current.leftButton.wasPressedThisFrame){
-                FlashTile(hitTile, clickColor, 0.2f);
-            }
+            if(Mouse.current.leftButton.wasPressedThisFrame) FlashTile(hitTile, clickColor, 0.2f);
         }else{
             if(lastHoveredTile != null){
                 ResetTileColor(lastHoveredTile);
@@ -329,6 +322,26 @@ public class GridManager : MonoBehaviour
             if(tile == lastHoveredTile) renderer.material.color = hoverColor;
             else ResetTileColor(tile);
         }
+    }
+
+    public void HighlightTiles(List<Vector2Int> tilePositions, bool isValid){
+        ClearMultiTileHighlights();
+        
+        foreach(Vector2Int pos in tilePositions){
+            GameObject tile = GetTileAtLocalPosition(pos);
+            if(tile != null){
+                Color highlightColor = (isValid) ? Color.green : Color.red;
+                SetTileInteractionColor(tile, highlightColor);
+                currentlyHighlightedTiles.Add(tile);
+            }
+        }
+    }
+
+    public void ClearMultiTileHighlights(){
+        foreach(GameObject tile in currentlyHighlightedTiles){
+            ResetTileColor(tile);
+        }
+        currentlyHighlightedTiles.Clear();
     }
     
     void ClearExistingGrid(){

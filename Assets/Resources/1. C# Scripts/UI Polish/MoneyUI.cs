@@ -96,13 +96,53 @@ public class MoneyUI : MonoBehaviour
             float easedT = 1f - Mathf.Pow(1f - t, 3f);
             int interpolatedMoney = Mathf.RoundToInt(Mathf.Lerp(startMoney, endMoney, easedT));
             
-            UpdateDigitsWithScroll(interpolatedMoney, t);
+            UpdateDigitsWithScroll(startMoney, endMoney, interpolatedMoney, t);
             
             yield return null;
         }
         
         currentDisplayedMoney = endMoney;
         UpdateMoneyDisplayImmediate(endMoney);
+    }
+    
+    void UpdateDigitsWithScroll(int startMoney, int endMoney, int currentMoney, float progress){
+        string currentStr = Mathf.Abs(currentMoney).ToString();
+        string startStr = Mathf.Abs(startMoney).ToString();
+        string endStr = Mathf.Abs(endMoney).ToString();
+        
+        int digitCount = moneyDigitBlocks.Length;
+        int currentDigits = currentStr.Length;
+        
+        for(int i = digitCount - 1; i >= 0; i--){
+            int digitPlaceFromRight = digitCount - 1 - i;
+            bool isAnimated = false;
+            char displayChar = '0';
+            
+            if(digitPlaceFromRight < currentDigits){
+                int charIndex = currentDigits - 1 - digitPlaceFromRight;
+                displayChar = currentStr[charIndex];
+                
+                if(digitPlaceFromRight < startStr.Length && digitPlaceFromRight < endStr.Length){
+                    int startCharIndex = startStr.Length - 1 - digitPlaceFromRight;
+                    int endCharIndex = endStr.Length - 1 - digitPlaceFromRight;
+                    
+                    if(startStr[startCharIndex] != endStr[endCharIndex]) isAnimated = true;
+                }
+                else isAnimated = true;
+            }
+            
+            if(isAnimated && progress < 0.8f){
+                int randomDigit = Random.Range(1, 10);
+                moneyDigitBlocks[i].Text = randomDigit.ToString();
+            }else moneyDigitBlocks[i].Text = displayChar.ToString();
+        }
+        
+        for(int i = 0; i < digitCount; i++) moneyDigitBlocks[i].Color = positiveColor;
+        bool foundNonZero = false;
+        for(int i = 0; i < digitCount; i++){
+            if(moneyDigitBlocks[i].Text == "0" && !foundNonZero) moneyDigitBlocks[i].Color = neutralColor;
+            else foundNonZero = true;
+        }
     }
     
     IEnumerator AnimateIcon(int previousMoney, int newMoney){
@@ -172,71 +212,15 @@ public class MoneyUI : MonoBehaviour
         iconAnimationCoroutine = null;
     }
     
-    void UpdateDigitsWithScroll(int money, float progress){
-        string moneyStr = Mathf.Abs(money).ToString();
-        
-        int digitCount = moneyDigitBlocks.Length;
-        
-        for(int i = 0; i < digitCount; i++){
-            int digitIndex = moneyStr.Length - 1 - i;
-            
-            if(digitIndex >= 0){
-                char targetChar = moneyStr[digitIndex];
-                
-                float scrollOffset = progress * digitScrollSpeed;
-                
-                if(progress < 0.8f){
-                    int randomDigit = Random.Range(0, 10);
-                    moneyDigitBlocks[digitCount - 1 - i].Text = randomDigit.ToString();
-                    
-                    UIBlock2D block = moneyDigitBlocks[digitCount - 1 - i].GetComponent<UIBlock2D>();
-                    if(block != null) block.Position.Y.Percent = Mathf.Sin(Time.time * 20f + i) * 10f * (1f - progress);
-                }else{
-                    moneyDigitBlocks[digitCount - 1 - i].Text = targetChar.ToString();
-                    
-                    UIBlock2D block = moneyDigitBlocks[digitCount - 1 - i].GetComponent<UIBlock2D>();
-                    if(block != null) block.Position.Y.Percent = 0f;
-                }
-            }else{
-                moneyDigitBlocks[digitCount - 1 - i].Text = "0";
-                
-                UIBlock2D block = moneyDigitBlocks[digitCount - 1 - i].GetComponent<UIBlock2D>();
-                if(block != null){
-                    Color32 color = block.Color;
-                    color.a = 120;
-                    block.Color = color;
-                }
-            }
-        }
-    }
-    
     void UpdateMoneyDisplayImmediate(int money){
         string moneyStr = Mathf.Abs(money).ToString();
         int digitCount = moneyDigitBlocks.Length;
         
+        for(int i = 0; i < digitCount; i++) moneyDigitBlocks[i].Color = positiveColor;
+        bool foundNonZero = false;
         for(int i = 0; i < digitCount; i++){
-            int digitIndex = moneyStr.Length - 1 - i;
-            
-            if(digitIndex >= 0){
-                moneyDigitBlocks[digitCount - 1 - i].Text = moneyStr[digitIndex].ToString();
-                
-                UIBlock2D block = moneyDigitBlocks[digitCount - 1 - i].GetComponent<UIBlock2D>();
-                if(block != null){
-                    block.Position.Y.Percent = 0f;
-                    Color32 color = block.Color;
-                    color.a = 255;
-                    block.Color = color;
-                }
-            }else{
-                moneyDigitBlocks[digitCount - 1 - i].Text = "0";
-                
-                UIBlock2D block = moneyDigitBlocks[digitCount - 1 - i].GetComponent<UIBlock2D>();
-                if(block != null){
-                    Color32 color = block.Color;
-                    color.a = 120;
-                    block.Color = color;
-                }
-            }
+            if(moneyDigitBlocks[i].Text == "0" && !foundNonZero) moneyDigitBlocks[i].Color = neutralColor;
+            else foundNonZero = true;
         }
         
         currentDisplayedMoney = money;

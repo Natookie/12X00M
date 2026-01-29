@@ -108,6 +108,14 @@ public class BuildSystem : MonoBehaviour
         }
     }
 
+    Vector2Int GetRotatedSize(Quaternion rotation, Vector2Int originalSize){
+        int rotationAngle = Mathf.RoundToInt(rotation.eulerAngles.y) % 360;
+        if(rotationAngle == 90 || rotationAngle == 270){
+            return new Vector2Int(originalSize.y, originalSize.x);
+        }
+        return originalSize;
+    }
+
     void UpdatePlacementPreviewPosition(){
         if(placementPreview == null || gridManager == null) return;
         
@@ -118,17 +126,22 @@ public class BuildSystem : MonoBehaviour
             Vector2Int gridPos = WorldToGridPosition(mouseGridPos.Value);
             Vector2Int adjustedPos = AdjustPositionForFurnitureSize(gridPos);
             
-            bool isValid = IsPlacementValid(adjustedPos, currentSelectedFurniture.FurnitureSize);
-            Vector3 worldPos = GetTileWorldPosition(adjustedPos, currentSelectedFurniture.FurnitureSize);
+            Vector2Int currentSize = GetRotatedSize(placementPreview.transform.rotation, currentSelectedFurniture.FurnitureSize);
+            bool isValid = IsPlacementValid(adjustedPos, currentSize);
+            List<Vector2Int> cellsToHighlight = GetOccupiedCells(adjustedPos, currentSize);
+            gridManager.HighlightTiles(cellsToHighlight, isValid);
+
+            Vector3 worldPos = GetTileWorldPosition(adjustedPos, currentSize);
             placementPreview.transform.position = worldPos;
             
             lastValidGridPosition = adjustedPos;
             hasValidLastPosition = true;
             
-            Material currentMaterial = isValid ? validPlacementMaterial : invalidPlacementMaterial;
+            Material currentMaterial = (isValid) ? validPlacementMaterial : invalidPlacementMaterial;
             SetPreviewMaterials(placementPreview, currentMaterial);
         }else if(hasValidLastPosition){
-            Vector3 worldPos = GetTileWorldPosition(lastValidGridPosition, currentSelectedFurniture.FurnitureSize);
+            Vector2Int currentSize = GetRotatedSize(placementPreview.transform.rotation, currentSelectedFurniture.FurnitureSize);
+            Vector3 worldPos = GetTileWorldPosition(lastValidGridPosition, currentSize);
             placementPreview.transform.position = worldPos;
             
             SetPreviewMaterials(placementPreview, invalidPlacementMaterial);
@@ -138,61 +151,56 @@ public class BuildSystem : MonoBehaviour
     Vector2Int AdjustPositionForFurnitureSize(Vector2Int gridPos){
         if(currentSelectedFurniture == null) return gridPos;
         
-        Vector2Int size = currentSelectedFurniture.FurnitureSize;
+        Vector2Int size = GetRotatedSize(
+            (placementPreview != null) ? placementPreview.transform.rotation : Quaternion.identity, 
+            currentSelectedFurniture.FurnitureSize
+        );
+        
         int halfWidth = gridManager.GridWidth / 2;
         int halfLength = gridManager.GridLength / 2;
         
+        int maxOffsetX = (size.x % 2 == 0) ? (size.x / 2) - 1 : (size.x / 2);
+        int maxOffsetY = (size.y % 2 == 0) ? (size.y / 2) - 1 : (size.y / 2);
+        
+        int minX = -halfWidth + maxOffsetX;
+        int maxX = halfWidth - maxOffsetX;
+        int minY = -halfLength + maxOffsetY;
+        int maxY = halfLength - maxOffsetY;
+        
         Vector2Int adjustedPos = gridPos;
-        
-        int minX = -(halfWidth - (size.x / 2));
-        int maxX = halfWidth - ((size.x - 1) / 2);
-        int minY = -(halfLength - (size.y / 2));
-        int maxY = halfLength - ((size.y - 1) / 2);
-        
         adjustedPos.x = Mathf.Clamp(adjustedPos.x, minX, maxX);
         adjustedPos.y = Mathf.Clamp(adjustedPos.y, minY, maxY);
         
         return adjustedPos;
     }
     
-    Vector3 GetTileWorldPosition(Vector2Int gridPos, Vector2Int size){
+    Vector3 GetTileWorldPosition(Vector2Int gridPos, Vector2Int size, GameObject furnitureObject = null){
         if(gridManager == null) return Vector3.zero;
         
-        GameObject centerTile = gridManager.GetTileAtLocalPosition(gridPos);
-        if(centerTile == null) return CalculatePositionFromGrid(gridPos, size);
+        Vector3 worldPos = CalculatePositionFromGrid(gridPos, size);
         
-        Vector3 tilePos = centerTile.transform.position;
-        
-        if(size.x > 1 || size.y > 1){
-            float offsetX = (size.x - 1) * gridManager.GridSpacing * 0.5f;
-            float offsetZ = (size.y - 1) * gridManager.GridSpacing * 0.5f;
-            
-            Vector2Int startPos = gridPos - new Vector2Int(size.x / 2, size.y / 2);
-            GameObject startTile = gridManager.GetTileAtLocalPosition(startPos);
-            
-            if(startTile != null){
-                Vector3 startPosWorld = startTile.transform.position;
-                tilePos = startPosWorld + new Vector3(offsetX, 0, offsetZ);
-            }
-        }
-        
-        Renderer tileRenderer = centerTile.GetComponent<Renderer>();
-        if(tileRenderer != null){
-            float tileHeight = tileRenderer.bounds.size.y;
-            tilePos.y += tileHeight * 0.5f;
-            
-            if(placementPreview != null){
-                Renderer furnitureRenderer = placementPreview.GetComponent<Renderer>();
-                if(furnitureRenderer != null){
-                    float furnitureHeight = furnitureRenderer.bounds.size.y;
-                    tilePos.y += furnitureHeight * 0.5f;
+        GameObject anyTile = gridManager.GetTileAtLocalPosition(gridPos);
+        if(anyTile != null){
+            Renderer tileRenderer = anyTile.GetComponent<Renderer>();
+            if(tileRenderer != null){
+                float tileTopY = anyTile.transform.position.y + (tileRenderer.bounds.size.y * 0.5f);
+                worldPos.y = tileTopY;
+                
+                if(furnitureObject != null){
+                    Renderer furnitureRenderer = furnitureObject.GetComponent<Renderer>();
+                    if(furnitureRenderer == null) furnitureRenderer = furnitureObject.GetComponentInChildren<Renderer>();
+                    
+                    if(furnitureRenderer != null){
+                        float furnitureHeight = furnitureRenderer.bounds.size.y;
+                        worldPos.y += furnitureHeight * 0.5f;
+                    }
                 }
             }
         }
         
-        tilePos.y += placementYOffset;
+        worldPos.y += placementYOffset;
         
-        return tilePos;
+        return worldPos;
     }
 
     Vector3 CalculatePositionFromGrid(Vector2Int gridPos, Vector2Int size){
@@ -206,12 +214,18 @@ public class BuildSystem : MonoBehaviour
         worldPos.x += (gridPos.x * gridSpacing) + offsetX;
         worldPos.z += (gridPos.y * gridSpacing) + offsetZ;
         
-        if(size.x > 1 || size.y > 1){
-            float sizeOffsetX = (size.x - 1) * gridSpacing * 0.5f;
-            float sizeOffsetZ = (size.y - 1) * gridSpacing * 0.5f;
-            worldPos.x += sizeOffsetX;
-            worldPos.z += sizeOffsetZ;
+        float sizeOffsetX = 0f;
+        float sizeOffsetZ = 0f;
+        
+        if(size.x > 1){
+            sizeOffsetX = (size.x % 2 == 0) ? (size.x / 2 - 0.5f) * gridSpacing : (size.x - 1) * gridSpacing * 0.5f;
         }
+        if(size.y > 1){
+            sizeOffsetZ = (size.y % 2 == 0) ? (size.y / 2 - 0.5f) * gridSpacing : (size.y - 1) * gridSpacing * 0.5f;
+        }
+        
+        worldPos.x += sizeOffsetX;
+        worldPos.z += sizeOffsetZ;
         
         return worldPos;
     }
@@ -223,19 +237,18 @@ public class BuildSystem : MonoBehaviour
         if(!mouseGridPos.HasValue) return;
         
         pendingGridPosition = WorldToGridPosition(mouseGridPos.Value);
-        isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
+        
+        Vector2Int currentSize = GetRotatedSize(placementPreview.transform.rotation, currentSelectedFurniture.FurnitureSize);
+        isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSize);
         if(!isPendingPlacementValid) return;
 
-        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
+        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSize);
         
         placementPreview.transform.position = worldPos;
         
         Material currentMaterial = isPendingPlacementValid ? validPlacementMaterial : invalidPlacementMaterial;
         SetPreviewMaterials(placementPreview, currentMaterial);
         
-        if(placementPreview != null && isPendingPlacementValid){
-            placementPreview.transform.localScale = Vector3.one * 1.05f;
-        }
         lastClickedMousePosition = Mouse.current.position.ReadValue();
         
         furnitureIsOnPending = true;
@@ -298,9 +311,7 @@ public class BuildSystem : MonoBehaviour
             int halfWidth = gridManager.GridWidth / 2;
             int halfLength = gridManager.GridLength / 2;
             
-            if(Mathf.Abs(cell.x) > halfWidth || Mathf.Abs(cell.y) > halfLength){
-                return false;
-            }
+            if(Mathf.Abs(cell.x) > halfWidth || Mathf.Abs(cell.y) > halfLength) return false;
             
             GameObject tile = gridManager.GetTileAtLocalPosition(cell);
             if(tile == null) return false;
@@ -314,8 +325,12 @@ public class BuildSystem : MonoBehaviour
         List<Vector2Int> cells = new List<Vector2Int>();
         
         Vector2Int startPos = gridPos;
-        startPos.x -= (size.x - 1) / 2;
-        startPos.y -= (size.y - 1) / 2;
+        
+        if(size.x % 2 == 0) startPos.x -= size.x / 2 - 1;
+        else startPos.x -= size.x / 2;
+        
+        if(size.y % 2 == 0) startPos.y -= size.y / 2 - 1;
+        else startPos.y -= size.y / 2;
         
         for(int x = 0; x < size.x; x++){
             for(int y = 0; y < size.y; y++){
@@ -329,16 +344,18 @@ public class BuildSystem : MonoBehaviour
     void PlaceFurniture(){
         if(!furnitureIsOnPending || !isPendingPlacementValid || currentSelectedFurniture == null) return;
         
-        List<Vector2Int> occupied = GetOccupiedCells(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
-        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
+        Quaternion finalRotation = placementPreview.transform.rotation;
+        Vector2Int finalSize = GetRotatedSize(finalRotation, currentSelectedFurniture.FurnitureSize);
+        
+        List<Vector2Int> occupied = GetOccupiedCells(pendingGridPosition, finalSize);
+        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, finalSize);
         
         GameObject furnitureObj = Instantiate(
             currentSelectedFurniture.FurniturePrefab, 
             worldPos, 
-            Quaternion.identity,
+            finalRotation,
             furnitureParent
         );
-        furnitureObj.transform.localRotation = Quaternion.identity;
         furnitureObj.name = currentSelectedFurniture.FurnitureName;
 
         FurnitureController furnitureController = furnitureObj.AddComponent<FurnitureController>();
@@ -350,7 +367,7 @@ public class BuildSystem : MonoBehaviour
             gameObject = furnitureObj,
             gridPosition = pendingGridPosition,
             occupiedCells = new List<Vector2Int>(occupied),
-            rotation = furnitureObj.transform.localRotation
+            rotation = finalRotation
         };
 
         foreach(Vector2Int cell in occupied){
@@ -366,6 +383,21 @@ public class BuildSystem : MonoBehaviour
         StartCoroutine(DelayCancelPlacement());
     }
 
+    void RotateFurniture(){
+        if(placementPreview == null || currentSelectedFurniture == null) return;
+        
+        placementPreview.transform.Rotate(0, 90, 0, Space.Self);
+        
+        Vector2Int rotatedSize = GetRotatedSize(placementPreview.transform.rotation, currentSelectedFurniture.FurnitureSize);
+        
+        if(furnitureIsOnPending){
+            isPendingPlacementValid = IsPlacementValid(pendingGridPosition, rotatedSize);
+            
+            Material currentMaterial = (isPendingPlacementValid) ? validPlacementMaterial : invalidPlacementMaterial;
+            SetPreviewMaterials(placementPreview, currentMaterial);
+        }
+    }
+
     public bool RemoveFurniture(Vector2Int worldPosition){
         if(placedFurniture.ContainsKey(worldPosition)){
             FurnitureInstance furniture = placedFurniture[worldPosition];
@@ -378,18 +410,6 @@ public class BuildSystem : MonoBehaviour
         }
         
         return false;
-    }
-    
-    void RotateFurniture(){
-        if(placementPreview == null || currentSelectedFurniture == null) return;
-        
-        placementPreview.transform.Rotate(0, 90, 0, Space.Self);
-        if(furnitureIsOnPending){
-            isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSelectedFurniture.FurnitureSize);
-            
-            Material currentMaterial = isPendingPlacementValid ? validPlacementMaterial : invalidPlacementMaterial;
-            SetPreviewMaterials(placementPreview, currentMaterial);
-        }
     }
     
     void CancelPlacement(){
@@ -435,7 +455,7 @@ public class BuildSystem : MonoBehaviour
         return unoccupiedPositions;
     }
 
-    public bool IsInBuildMode => currentSelectedFurniture != null && furnitureIsOnPending;
+    public bool IsInBuildMode => currentSelectedFurniture != null;
 
     void OnDrawGizmos(){
         if(!Application.isPlaying || gridManager == null) return;
