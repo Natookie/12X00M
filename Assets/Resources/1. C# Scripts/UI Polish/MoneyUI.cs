@@ -20,7 +20,6 @@ public class MoneyUI : MonoBehaviour
     [SerializeField] private float lifeTime = 1f;
     [SerializeField] private float randomness = 12f;
     [SerializeField] private float spawnOffsetY = 12f;
-    [SerializeField] private float digitScrollSpeed = 10f;
     [SerializeField] private float digitAnimationDuration = 0.8f;
     [SerializeField] private float iconBounceHeight = 20f;
     [SerializeField] private float iconBounceSpeed = 15f;

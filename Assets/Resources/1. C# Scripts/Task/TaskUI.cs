@@ -192,7 +192,6 @@ public class TaskUI : MonoBehaviour
                 int current = GetCurrentProgress(taskData);
                 int target = GetTargetProgress(taskData);
                 
-                Debug.Log("UpdateAllTaskVisuals");
                 taskItem.UpdateStatus(completed, current, target, false);
             }
         }
@@ -214,7 +213,6 @@ public class TaskUI : MonoBehaviour
                 int current = GetCurrentProgress(taskData);
                 int target = GetTargetProgress(taskData);
                 
-                Debug.Log("UpdateAllTaskVisuals");
                 taskItem.UpdateStatus(completed, current, target, true);
             }
         }

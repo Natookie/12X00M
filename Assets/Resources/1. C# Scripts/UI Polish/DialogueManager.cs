@@ -61,7 +61,7 @@ public class DialogueManager : MonoBehaviour
 
     void Update(){
         if(!GameManager.Instance.isInitialized) return;
-        if(skipButton != null) Destroy(skipButton.gameObject);
+        if(skipButton != null) skipButton.transform.position = new Vector3(-1000, -1000, -1000);
 
         if(!IsTypingActive() && Time.time - lastIdleDialogueTime > idleDialogueCooldown){
             string randomIdleLine = DialogueLib.GetRandomDialogue("Idle");
@@ -181,9 +181,8 @@ public class DialogueManager : MonoBehaviour
 
     #region SKIP BUTTON
     void skipClick(Gesture.OnPress evt){
-        if(skipButton == null) return;
         SkipTyping();
-        GameManager.Instance.SetInitialized();
+        GameManager.Instance.isInitialized = true;
 
         AudioManager.Instance.PlaySFX(skipPressedSFXKey);
     }
