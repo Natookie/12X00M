@@ -20,4 +20,4 @@ MonoBehaviour:
   comfortContribution: 5
   functionalityContribution: 40
   furnitureIcon: {fileID: 21300000, guid: 11ade1e79a7666c4e8430c9e0540bd37, type: 3}
-  furniturePrefab: {fileID: 5572783410703690239, guid: 36653186fd0791144927a3e2bb7ec247, type: 3}
+  furniturePrefab: {fileID: 5434895845727084968, guid: 59af0012a797fe943895092c540c3276, type: 3}
