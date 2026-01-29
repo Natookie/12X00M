@@ -20,4 +20,11 @@ public abstract class TaskData : ScriptableObject
     public virtual int GetCurrentProgress(RoomStats roomStats){
         return 0;
     }
+
+    public virtual int GetTrustCost(RoomStats roomStats){
+        return 0;
+    }
+
+    public virtual void ResetCumulativeProgress(RoomStats roomStats){}
+
 }

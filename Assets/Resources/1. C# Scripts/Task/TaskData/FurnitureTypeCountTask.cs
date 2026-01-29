@@ -25,6 +25,22 @@ public class FurnitureTypeCountTask : TaskData
         return roomStats.GetFurnitureCountByType(requiredType) >= currentTarget;
     }
 
+    public override int GetTrustCost(RoomStats roomStats){
+        if(roomStats == null) return 0;
+
+        int trustCost = Mathf.Max(0, highestCountAchieved * 2);
+        trustCost = Mathf.Clamp(trustCost, 0, 40);
+
+        return trustCost;
+    }
+
+    public override void ResetCumulativeProgress(RoomStats roomStats){
+        if(roomStats == null || requiredType == FurnitureType.None) return;
+        
+        highestCountAchieved = 0;
+        currentTarget = highestCountAchieved + requiredCount;
+    }
+
     public override string GetDescription(RoomStats roomStats){
         if(requiredType == FurnitureType.None) return $"[0/{requiredCount}] Task configuration error";
 
@@ -32,6 +48,6 @@ public class FurnitureTypeCountTask : TaskData
         if(roomStats == null) return $"[0/{requiredCount}] Place {requiredCount} {typeName}(s)";
         int currentCount = roomStats.GetFurnitureCountByType(requiredType);
 
-        return $"Type: [{currentCount}/{currentTarget}] Need {currentTarget} total {typeName}(s) (Round {roundWhenAssigned})";
+        return $"[{currentCount}/{currentTarget}] (Type) Need {currentTarget} total {typeName}(s)";
     }
 }
