@@ -6,8 +6,8 @@ using UnityEngine.InputSystem;
 public class GridManager : MonoBehaviour
 {
     [Header("GRID CONFIGURATION")]
-    [SerializeField] private int gridLength = 10;
-    [SerializeField] private int gridWidth = 10;
+    [SerializeField] private int gridLength = 9;
+    [SerializeField] private int gridWidth = 9;
     [SerializeField] private float gridSpacing = 1.1f;
     [SerializeField] private bool centerOnTransform = true;
     [SerializeField] private Vector3 customCenterPos = Vector3.zero;

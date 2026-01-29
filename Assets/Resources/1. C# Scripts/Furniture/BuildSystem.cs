@@ -131,7 +131,8 @@ public class BuildSystem : MonoBehaviour
             List<Vector2Int> cellsToHighlight = GetOccupiedCells(adjustedPos, currentSize);
             gridManager.HighlightTiles(cellsToHighlight, isValid);
 
-            Vector3 worldPos = GetTileWorldPosition(adjustedPos, currentSize);
+            Vector3 worldPos = CalculatePositionFromTilesCenter(cellsToHighlight);
+            
             placementPreview.transform.position = worldPos;
             
             lastValidGridPosition = adjustedPos;
@@ -141,11 +142,42 @@ public class BuildSystem : MonoBehaviour
             SetPreviewMaterials(placementPreview, currentMaterial);
         }else if(hasValidLastPosition){
             Vector2Int currentSize = GetRotatedSize(placementPreview.transform.rotation, currentSelectedFurniture.FurnitureSize);
-            Vector3 worldPos = GetTileWorldPosition(lastValidGridPosition, currentSize);
+            List<Vector2Int> cellsToHighlight = GetOccupiedCells(lastValidGridPosition, currentSize);
+            Vector3 worldPos = CalculatePositionFromTilesCenter(cellsToHighlight);
             placementPreview.transform.position = worldPos;
             
             SetPreviewMaterials(placementPreview, invalidPlacementMaterial);
         }else placementPreview.transform.position = Vector3.zero;
+    }
+
+    Vector3 CalculatePositionFromTilesCenter(List<Vector2Int> occupiedCells){
+        if(occupiedCells.Count == 0 || gridManager == null) return Vector3.zero;
+        
+        Vector3 sumPos = Vector3.zero;
+        int validTiles = 0;
+        
+        foreach(Vector2Int cell in occupiedCells){
+            GameObject tile = gridManager.GetTileAtLocalPosition(cell);
+            if(tile != null){
+                sumPos += tile.transform.position;
+                validTiles++;
+            }
+        }
+        
+        if(validTiles == 0) return Vector3.zero;
+        
+        Vector3 centerPos = sumPos / validTiles;
+        GameObject firstTile = gridManager.GetTileAtLocalPosition(occupiedCells[0]);
+        if(firstTile != null){
+            Renderer tileRenderer = firstTile.GetComponent<Renderer>();
+            if(tileRenderer != null){
+                float tileTopY = firstTile.transform.position.y + tileRenderer.bounds.size.y;
+                centerPos.y = tileTopY;
+                centerPos.y += placementYOffset;
+            }
+        }
+        
+        return centerPos;
     }
 
     Vector2Int AdjustPositionForFurnitureSize(Vector2Int gridPos){
@@ -183,13 +215,11 @@ public class BuildSystem : MonoBehaviour
         if(anyTile != null){
             Renderer tileRenderer = anyTile.GetComponent<Renderer>();
             if(tileRenderer != null){
-                float tileTopY = anyTile.transform.position.y + (tileRenderer.bounds.size.y * 0.5f);
+                float tileTopY = anyTile.transform.position.y + tileRenderer.bounds.size.y;
                 worldPos.y = tileTopY;
                 
                 if(furnitureObject != null){
                     Renderer furnitureRenderer = furnitureObject.GetComponent<Renderer>();
-                    if(furnitureRenderer == null) furnitureRenderer = furnitureObject.GetComponentInChildren<Renderer>();
-                    
                     if(furnitureRenderer != null){
                         float furnitureHeight = furnitureRenderer.bounds.size.y;
                         worldPos.y += furnitureHeight * 0.5f;
@@ -242,7 +272,8 @@ public class BuildSystem : MonoBehaviour
         isPendingPlacementValid = IsPlacementValid(pendingGridPosition, currentSize);
         if(!isPendingPlacementValid) return;
 
-        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, currentSize);
+        List<Vector2Int> cellsToHighlight = GetOccupiedCells(pendingGridPosition, currentSize);
+        Vector3 worldPos = CalculatePositionFromTilesCenter(cellsToHighlight);
         
         placementPreview.transform.position = worldPos;
         
@@ -348,7 +379,9 @@ public class BuildSystem : MonoBehaviour
         Vector2Int finalSize = GetRotatedSize(finalRotation, currentSelectedFurniture.FurnitureSize);
         
         List<Vector2Int> occupied = GetOccupiedCells(pendingGridPosition, finalSize);
-        Vector3 worldPos = GetTileWorldPosition(pendingGridPosition, finalSize);
+        
+        // USE THE PREVIEW'S POSITION - it's already correct and matches the highlight!
+        Vector3 worldPos = placementPreview.transform.position;
         
         GameObject furnitureObj = Instantiate(
             currentSelectedFurniture.FurniturePrefab, 
