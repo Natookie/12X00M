@@ -306,8 +306,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+    rgba: 4280489759
+  m_fontColor: {r: 0.12156863, g: 0.09019608, b: 0.13725491, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -598,7 +598,7 @@ MonoBehaviour:
     ReceiveShadows: 1
   PreviewSize: {x: 350, y: 90, z: 0}
   visuals:
-    Color: {r: 0.8862746, g: 0.8862746, b: 0.87843144, a: 1}
+    Color: {r: 0.8862746, g: 0.8862746, b: 0.8862745, a: 1}
     CornerRadius:
       Raw: 16
       Type: 0
