@@ -16,6 +16,17 @@ The project is built with Unity `6000.2.6f2`. Game-authored code lives mainly un
 <br><br>
 [![Play on itch.io](https://img.shields.io/badge/Play%20on-itch.io-fa5c5c?logo=itchdotio&logoColor=white)](https://maximillian520.itch.io/room-for-one-more)
 
+## Contributors
+
+| Contributor | Role | Contribution |
+|---|---|---|
+| **Natanael Kevin Kurniawan** | **Lead Game Programmer & UI/UX Designer** | Led the implementation of the game's core gameplay loop and primary gameplay systems. Responsible for the majority of the game's scripting and also designed and implemented the overall UI/UX and player interaction flow. |
+| **Maximillian Kenas** | **Game Programmer & Game Designer** | Supported gameplay programming and helped resolve technical challenges throughout development. Also contributed to gameplay design decisions and helped refine mechanics and overall player experience. |
+| **Delvin Susilo** | **Lead Game Designer** | Originated the game's core concept and established its overall gameplay direction. Structured the game's progression, sequence of events, and overall player experience. |
+| **Dave Franklin Lewandi** | **3D & 2D Game Artist** | Created the game's complete voxel-based 3D environment and object assets, while also producing the 2D UI iconography used throughout the game's interface. |
+
+## Time Spent: 7 Days / ~96 Work Hours
+
 ## Features
 
 - Data-driven furniture catalog with costs, sizes, prefabs, categories, icons, and trait contributions.
@@ -92,14 +103,3 @@ ProjectSettings/         Unity version, build scenes, and project settings
 - Editor context-menu helpers can generate the grid, populate furniture data, populate task assets, and assign catalog items.
 - Furniture placement uses left click to confirm, right click or Escape to cancel, and `R` to rotate. The project also defines `N` for dialogue skip, `1`/`2`/`3` for information panels, and `Ctrl+M`/`Ctrl+T` debug shortcuts for money/trust.
 - The repository includes an MIT `LICENSE`.
-
-## Contributors
-
-| Contributor | Role | Contribution |
-|---|---|---|
-| **Natanael Kevin Kurniawan** | **Lead Game Programmer & UI/UX Designer** | Led the implementation of the game's core gameplay loop and primary gameplay systems. Responsible for the majority of the game's scripting and also designed and implemented the overall UI/UX and player interaction flow. |
-| **Maximillian Kenas** | **Game Programmer & Game Designer** | Supported gameplay programming and helped resolve technical challenges throughout development. Also contributed to gameplay design decisions and helped refine mechanics and overall player experience. |
-| **Delvin Susilo** | **Lead Game Designer** | Originated the game's core concept and established its overall gameplay direction. Structured the game's progression, sequence of events, and overall player experience. |
-| **Dave Franklin Lewandi** | **3D & 2D Game Artist** | Created the game's complete voxel-based 3D environment and object assets, while also producing the 2D UI iconography used throughout the game's interface. |
-
-## Time Spent: 7 Days / ~96 Work Hours
